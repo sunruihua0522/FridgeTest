@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.1" halcon_version="17.12">
+<procedure name="main">
+<interface/>
+<body>
+<l>PoseIndex:=8</l>
+<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/Code/image/RawImage/Robot_0'+PoseIndex+'.png')</l>
+<l>*mean_image(Image11117455Cam0, Image11117455Cam0, 3, 3)</l>
+<l>get_image_size(Image11117455Cam0, Width, Height)</l>
+<l>dev_close_window()</l>
+<l>dev_open_window_fit_image(Image11117455Cam0, 0, 0, -1, -1, WindowHandle)</l>
+<l>dev_display(Image11117455Cam0)</l>
+<l>stop()</l>
+<l>PreFile:='./Para/Pose'+PoseIndex+'/P1/'</l>
+<c></c>
+<l>* draw_rectangle2(WindowHandle, Row, Column, Phi, Length1, Length2)</l>
+<l>RoiTuple:=[Row, Column, Phi, Length1, Length2,2,10,'negative_strongest','first']</l>
+<l>write_tuple(RoiTuple, PreFile+'Roi.tup')</l>
+<c></c>
+<c></c>
+<c></c>
+<l>read_tuple(PreFile+'Roi.tup', RoiTuple)</l>
+<l>Row:=RoiTuple[0]</l>
+<l>Column:=RoiTuple[1]</l>
+<l>Phi:=RoiTuple[2]</l>
+<l>Length1:=RoiTuple[3]</l>
+<l>Length2:=RoiTuple[4]</l>
+<c></c>
+<c></c>
+<l>dev_set_draw('margin')</l>
+<c></c>
+<l>gen_rectangle2(Rectangle, Row, Column, Phi, Length1, Length2)</l>
+<c></c>
+<l>CaliperNum:=100</l>
+<l>ExpectPairNum:=1</l>
+<c></c>
+<l>NewL1:=Length1</l>
+<l>NewL2:=Length2/(CaliperNum-1)</l>
+<c></c>
+<l>tuple_sin(Phi, Sin)</l>
+<l>tuple_cos(Phi, Cos)</l>
+<c></c>
+<l>BaseRow:=Row+Length2*Cos</l>
+<l>BaseCol:=Column+Length2*Sin</l>
+<c></c>
+<l>newRow:=BaseRow</l>
+<l>newCol:=BaseCol</l>
+<c></c>
+<l>RowFirstList:=[]</l>
+<l>ColFirstList:=[]</l>
+<l>RowSecondList:=[]</l>
+<l>ColSecondList:=[]</l>
+<c></c>
+<l>for Index := 1 to CaliperNum by 1</l>
+<l>    gen_measure_rectangle2(newRow, newCol, Phi, NewL1, NewL2, Width, Height, 'nearest_neighbor', MeasureHandle)</l>
+<c>    *positive找白边，negative找黑边</c>
+<l>    measure_pairs(Image11117455Cam0, MeasureHandle, RoiTuple[5], RoiTuple[6], RoiTuple[7], RoiTuple[8], RowEdgeFirst, ColumnEdgeFirst, AmplitudeFirst, RowEdgeSecond, ColumnEdgeSecond, AmplitudeSecond, IntraDistance, InterDistance)</l>
+<l>    newRow:=BaseRow-NewL2*Cos*Index*2</l>
+<l>    newCol:=BaseCol-NewL2*Sin*Index*2</l>
+<c>    </c>
+<l>    tuple_length(RowEdgeFirst, Length)</l>
+<l>    tuple_length(RowEdgeSecond, Length3)</l>
+<c>   </c>
+<l>    if(|RowEdgeFirst|&gt;0 and |RowEdgeFirst|=|RowEdgeSecond| and ExpectPairNum=|RowEdgeFirst|)</l>
+<l>       RowFirstList:=[RowFirstList,RowEdgeFirst]</l>
+<l>       ColFirstList:=[ColFirstList,ColumnEdgeFirst]</l>
+<l>       RowSecondList:=[RowSecondList,RowEdgeSecond]</l>
+<l>       ColSecondList:=[ColSecondList,ColumnEdgeSecond]</l>
+<l>    endif</l>
+<l>    close_measure(MeasureHandle)</l>
+<l>endfor</l>
+<c></c>
+<c></c>
+<c></c>
+<l>if(|RowFirstList|&gt;2)</l>
+<l>    gen_contour_polygon_xld(Contour, RowFirstList, ColFirstList)</l>
+<l>    fit_line_contour_xld(Contour, 'gauss', -1, 0, 5, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
+<c>    </c>
+<l>    gen_contour_polygon_xld(Contour1, RowSecondList, ColSecondList)</l>
+<l>    fit_line_contour_xld(Contour1, 'gauss', -1, 0, 5, 2, RowBegin1, ColBegin1, RowEnd1, ColEnd1, Nr1, Nc1, Dist1)</l>
+<c>    </c>
+<l>endif</l>
+<l>dev_clear_window()</l>
+<l>*dev_set_part(785, 1515, 1014, 1659)</l>
+<l>dev_display(Image11117455Cam0)</l>
+<c></c>
+<l>dev_set_color('yellow')</l>
+<l>* for Index1 := 0 to |RowFirstList|-1 by 1</l>
+<l>*     disp_cross(WindowHandle, RowFirstList[Index1], ColFirstList[Index1], 6, Phi)</l>
+<l>*     disp_cross(WindowHandle, RowSecondList[Index1], ColSecondList[Index1], 6, Phi)</l>
+<l>* endfor</l>
+<c></c>
+<c></c>
+<l>dev_set_color('red')</l>
+<l>disp_line(WindowHandle, RowBegin, ColBegin, RowEnd, ColEnd)</l>
+<l>dev_set_color('green')</l>
+<l>disp_line(WindowHandle, RowBegin1, ColBegin1, RowEnd1, ColEnd1)</l>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

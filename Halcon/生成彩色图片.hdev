@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.1" halcon_version="17.12">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image(Image, 'C:/Users/cn11321/source/Code/image/RawImage/Robot_01.png')</l>
+<l>gen_rectangle1(Rectangle, 30, 20, 500, 200)</l>
+<l>paint_region(Rectangle, Image, ImageResult, 255, 'fill')</l>
+<l>compose3(ImageResult, Image, Image, MultiChannelImage)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

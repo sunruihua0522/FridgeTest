@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.1" halcon_version="17.12">
+<procedure name="main">
+<interface/>
+<body>
+<l>Index:=8</l>
+<c></c>
+<l>read_image (Image,  'C:/Users/cn11321/source/Code/image/RawImage/Robot_0'+Index+'.png')</l>
+<l>mean_image(Image, Image11117455Cam0, 3, 3)</l>
+<l>dev_close_window()</l>
+<l>dev_open_window_fit_image(Image, 0, 0, -1, -1, WindowHandle)</l>
+<l>dev_display(Image)</l>
+<l>*stop()</l>
+<l>PreFile:='./Para/Pose'+Index+'/C1/'</l>
+<l> spoke_paras:=[30,15,5,1,5,'negative', 'first']</l>
+<c></c>
+<l>stop()</l>
+<l>draw_spoke(Image, Regions, WindowHandle, 100, 15, 5, ROIRows, ROICols, Direct)</l>
+<l> write_tuple(spoke_paras, PreFile+'spokeParas.tup')</l>
+<l>write_tuple(ROIRows, PreFile+'sopkeParaRow.tup')</l>
+<l>write_tuple(ROICols, PreFile+'sopkeParaCol.tup')</l>
+<l>write_tuple(Direct, PreFile+'sopkeParaDir.tup')</l>
+<c></c>
+<c></c>
+<l>read_tuple(PreFile+'spokeParas.tup', spoke_paras)</l>
+<l>read_tuple(PreFile+'sopkeParaRow.tup', ROIRows)</l>
+<l>read_tuple(PreFile+'sopkeParaCol.tup', ROICols)</l>
+<l>read_tuple(PreFile+'sopkeParaDir.tup', Direct)</l>
+<c></c>
+<c></c>
+<l>spoke (Image, Regions1, spoke_paras[0], spoke_paras[1], spoke_paras[2], spoke_paras[3], spoke_paras[4], spoke_paras[5],spoke_paras[6], ROIRows, ROICols, Direct, ResultRow, ResultColumn, ArcType)</l>
+<l>dev_set_color('yellow')</l>
+<l>dev_clear_window()</l>
+<l>dev_display(Image)</l>
+<l>for Index := 0 to |ResultRow|-1 by 1</l>
+<l>    disp_cross(WindowHandle, ResultRow[Index], ResultColumn[Index], 6, 0)</l>
+<l>endfor</l>
+<c></c>
+<l>gen_contour_polygon_xld(Contour,ResultRow, ResultColumn)</l>
+<c></c>
+<l>fit_circle_contour_xld(Contour, 'algebraic', -1, 0, 0, 3, 2, Row, Column, Radius, StartPhi, EndPhi, PointOrder)</l>
+<l>dev_set_draw('margin')</l>
+<l>dev_clear_window()</l>
+<l>dev_display(Image)</l>
+<l>gen_circle(Circle, Row, Column, Radius)</l>
+<c></c>
+<l>dev_display(Circle)</l>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
