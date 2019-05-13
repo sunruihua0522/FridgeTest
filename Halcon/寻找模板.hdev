@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.1" halcon_version="17.12">
+<procedure name="main">
+<interface/>
+<body>
+<l>Group:=2</l>
+<l>PoseIndex:=2</l>
+<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
+<l>*mean_image(Image11117455Cam0, Image11117455Cam0, 3, 3)</l>
+<l>get_image_size(Image11117455Cam0, Width, Height)</l>
+<c></c>
+<l>read_shape_model('./Model/Model.shm', ModelID)</l>
+<l>find_shape_model(Image11117455Cam0, ModelID, -0.39, 0.79, 0.7, 1, 0.5, 'least_squares', 0, 0.9, Row, Column, Angle, Score)</l>
+<l>get_shape_model_origin(ModelID, Row1, Column1)</l>
+<c></c>
+<l>vector_angle_to_rigid(Row-Row1, Column-Column1, Angle,Row1, Column1, 0, HomMat2D)</l>
+<l>affine_trans_image(Image11117455Cam0, ImageAffineTrans, HomMat2D, 'constant', 'false')</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

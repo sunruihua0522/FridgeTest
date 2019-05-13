@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.1" halcon_version="17.12">
+<procedure name="main">
+<interface/>
+<body>
+<l>Group:=1</l>
+<l>PoseIndex:=2</l>
+<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
+<l>*mean_image(Image11117455Cam0, Image11117455Cam0, 3, 3)</l>
+<l>get_image_size(Image11117455Cam0, Width, Height)</l>
+<c></c>
+<c></c>
+<l>* draw Model Roi</l>
+<l>draw_rectangle2(200000, Row, Column, Phi, Length1, Length2)</l>
+<l>ModelRoi:=[Row, Column, Phi, Length1, Length2,-0.39,0.79]</l>
+<l>write_tuple(ModelRoi, './Model/ModelRoi.tup')</l>
+<c></c>
+<c></c>
+<c></c>
+<l>read_tuple('./Model/ModelRoi.tup', ModelRoi)</l>
+<l>gen_rectangle2(Rectangle, ModelRoi[0], ModelRoi[1], ModelRoi[2], ModelRoi[3], ModelRoi[4])</l>
+<l>reduce_domain(Image11117455Cam0, Rectangle, ImageReduced)</l>
+<c></c>
+<c>* CreateShapeMode</c>
+<l>create_shape_model(ImageReduced,'auto',ModelRoi[5],ModelRoi[6],'auto','auto', 'use_polarity', 'auto', 'auto', ModelID)</l>
+<l>find_shape_model(Image11117455Cam0, ModelID, ModelRoi[5], ModelRoi[6], 0.7, 1, 0.5, 'least_squares', 0, 0.9, Row1, Column1, Angle, Score)</l>
+<l>set_shape_model_origin(ModelID, Row1, Column1)</l>
+<l>write_shape_model(ModelID, './Model/Model.shm')</l>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

@@ -3,10 +3,26 @@
 <procedure name="main">
 <interface/>
 <body>
-<l>PoseIndex:=8</l>
-<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/Code/image/RawImage/Robot_0'+PoseIndex+'.png')</l>
+<l>Group:=4</l>
+<l>PoseIndex:=1</l>
+<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
 <l>*mean_image(Image11117455Cam0, Image11117455Cam0, 3, 3)</l>
 <l>get_image_size(Image11117455Cam0, Width, Height)</l>
+<l>SearchPara:=[-0.39, 0.79, 0.5, 1, 0.1]</l>
+<c></c>
+<c>*做变换</c>
+<l>PreFile:='./Para/Pose'+PoseIndex+'/Model/'</l>
+<l>write_tuple(SearchPara, PreFile+'SearchPara.tup')</l>
+<l>read_shape_model(PreFile+'Model.shm', ModelID)</l>
+<l>read_tuple(PreFile+'SearchPara.tup', Tuple)</l>
+<l>find_shape_model(Image11117455Cam0, ModelID, SearchPara[0],SearchPara[1],SearchPara[2], SearchPara[3], SearchPara[4], 'least_squares', 0, 0.9, RowModel, ColumnModel, AngleModel, Score)</l>
+<l>get_shape_model_origin(ModelID, RowOrigin, ColumnOrigin)</l>
+<c></c>
+<l>vector_angle_to_rigid(RowModel-RowOrigin, ColumnModel-ColumnOrigin, AngleModel,RowOrigin, ColumnOrigin, 0, HomMat2D)</l>
+<l>affine_trans_image(Image11117455Cam0, Image11117455Cam0, HomMat2D, 'constant', 'false')</l>
+<c></c>
+<c></c>
+<c></c>
 <l>dev_close_window()</l>
 <l>dev_open_window_fit_image(Image11117455Cam0, 0, 0, -1, -1, WindowHandle)</l>
 <l>dev_display(Image11117455Cam0)</l>
@@ -14,8 +30,8 @@
 <l>PreFile:='./Para/Pose'+PoseIndex+'/P1/'</l>
 <c></c>
 <l>* draw_rectangle2(WindowHandle, Row, Column, Phi, Length1, Length2)</l>
-<l>RoiTuple:=[Row, Column, Phi, Length1, Length2,2,10,'negative_strongest','first']</l>
-<l>write_tuple(RoiTuple, PreFile+'Roi.tup')</l>
+<l>* RoiTuple:=[Row, Column, Phi, Length1, Length2,1,10,'negative_strongest','first']</l>
+<l>* write_tuple(RoiTuple, PreFile+'Roi.tup')</l>
 <c></c>
 <c></c>
 <c></c>
@@ -85,10 +101,10 @@
 <l>dev_display(Image11117455Cam0)</l>
 <c></c>
 <l>dev_set_color('yellow')</l>
-<l>* for Index1 := 0 to |RowFirstList|-1 by 1</l>
-<l>*     disp_cross(WindowHandle, RowFirstList[Index1], ColFirstList[Index1], 6, Phi)</l>
-<l>*     disp_cross(WindowHandle, RowSecondList[Index1], ColSecondList[Index1], 6, Phi)</l>
-<l>* endfor</l>
+<l>for Index1 := 0 to |RowFirstList|-1 by 1</l>
+<l>    disp_cross(WindowHandle, RowFirstList[Index1], ColFirstList[Index1], 6, Phi)</l>
+<l>    disp_cross(WindowHandle, RowSecondList[Index1], ColSecondList[Index1], 6, Phi)</l>
+<l>endfor</l>
 <c></c>
 <c></c>
 <l>dev_set_color('red')</l>
