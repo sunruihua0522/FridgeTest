@@ -3,41 +3,93 @@
 <procedure name="main">
 <interface/>
 <body>
-<l>Index:=8</l>
+<l>for Index1 := 1 to 9 by 1</l>
 <c></c>
-<l>read_image (Image,  'C:/Users/cn11321/source/Code/image/RawImage/Robot_0'+Index+'.png')</l>
-<l>mean_image(Image, Image11117455Cam0, 3, 3)</l>
+<l>Group:=Index1</l>
+<l>PoseIndex:=8</l>
+<l>CircleIndex:=1</l>
+<l>read_image (Image,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
+<c></c>
+<c></c>
+<c>*做变换</c>
+<l>PreFile:='./Para/Pose'+PoseIndex+'/Model/'</l>
+<l>read_shape_model(PreFile+'Model.shm', ModelID)</l>
+<l>find_shape_model(Image, ModelID, -0.39, 0.79, 0.2, 1, 0.5, 'least_squares', 0, 0.9, RowModel, ColumnModel, AngleModel, Score)</l>
+<l>get_shape_model_origin(ModelID, RowOrigin, ColumnOrigin)</l>
+<l>vector_angle_to_rigid(RowModel-RowOrigin, ColumnModel-ColumnOrigin, AngleModel,RowOrigin, ColumnOrigin, 0, HomMat2D)</l>
+<l>affine_trans_image(Image, Image, HomMat2D, 'constant', 'false')</l>
+<c></c>
+<c></c>
 <l>dev_close_window()</l>
 <l>dev_open_window_fit_image(Image, 0, 0, -1, -1, WindowHandle)</l>
 <l>dev_display(Image)</l>
 <l>*stop()</l>
-<l>PreFile:='./Para/Pose'+Index+'/C1/'</l>
-<l> spoke_paras:=[30,15,5,1,5,'negative', 'first']</l>
+<l>PreFile:='./Para/Pose'+PoseIndex+'/C'+CircleIndex+'/'</l>
+<l>spoke_paras:=[30,15,5,1,5,'negative', 'first']</l>
 <c></c>
-<l>stop()</l>
-<l>draw_spoke(Image, Regions, WindowHandle, 100, 15, 5, ROIRows, ROICols, Direct)</l>
-<l> write_tuple(spoke_paras, PreFile+'spokeParas.tup')</l>
-<l>write_tuple(ROIRows, PreFile+'sopkeParaRow.tup')</l>
-<l>write_tuple(ROICols, PreFile+'sopkeParaCol.tup')</l>
-<l>write_tuple(Direct, PreFile+'sopkeParaDir.tup')</l>
+<l>*stop()</l>
+<c></c>
+<c>*画矩形Reduce区域</c>
+<l>* draw_rectangle2(WindowHandle, Row1, Column1, Phi, Length1, Length2)</l>
+<l>* RectRoiSearch:=[Row1, Column1, Phi, Length1, Length2]</l>
+<l>* write_tuple(RectRoiSearch,'./Para/Pose'+PoseIndex+'/C'+CircleIndex+'/RectRoiSearch.tup')</l>
+<c></c>
+<c></c>
+<l>read_tuple('./Para/Pose'+PoseIndex+'/C'+CircleIndex+'/RectRoiSearch.tup', RectRoiSearch)</l>
+<l>gen_rectangle2(Rectangle, RectRoiSearch[0], RectRoiSearch[1], RectRoiSearch[2], RectRoiSearch[3], RectRoiSearch[4])</l>
+<l>reduce_domain(Image, Rectangle, Image)</l>
+<l>scale_image_max(Image, Image)</l>
+<c></c>
+<c></c>
+<c>*找圆形区域</c>
+<l>gray_histo(Rectangle, Image, AbsoluteHisto, RelativeHisto)</l>
+<l>tuple_sort_index(AbsoluteHisto, Indices)</l>
+<c></c>
+<l>IndexSelect:=255</l>
+<l>while (Indices[IndexSelect]+20&gt;255)</l>
+<l>    IndexSelect:=IndexSelect-1</l>
+<l>endwhile</l>
+<l>threshold (Image, Regions, Indices[IndexSelect]+30, 255)</l>
+<l>connection(Regions, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, ['area','circularity'], 'and', [266.06,0.5], [5532.11,1])</l>
+<l>sort_region(SelectedRegions, SelectedRegions, 'first_point', 'true', 'column')</l>
+<c></c>
+<l>if (CircleIndex==1)</l>
+<l>    SelectIndex:=0</l>
+<l>else</l>
+<l>    SelectIndex:=1</l>
+<l>endif</l>
+<c></c>
+<l>area_center(SelectedRegions, Area, Row1, Column1)</l>
+<l>intersection_line_circle(Row1[SelectIndex]-50, Column1[SelectIndex], Row1[SelectIndex]+50, Column1[SelectIndex], Row1[SelectIndex], Column1[SelectIndex], 26, 0, 6.28318, 'positive', Row2, Column2)</l>
+<l>intersection_line_circle(Row1[SelectIndex], Column1[SelectIndex]-50, Row1[SelectIndex], Column1[SelectIndex]+50, Row1[SelectIndex], Column1[SelectIndex], 26, 0, 6.28318, 'positive', Row3, Column3)</l>
+<l>ROIRows:=[Row2,Row3,Row2[0]]</l>
+<l>ROICols:=[Column2,Column3,Column2[0]]</l>
+<l>Direct:='inner'</l>
+<c></c>
+<c>*画圆形搜索区域</c>
+<l>* draw_spoke(Image, Regions, WindowHandle, 100, 15, 5, ROIRows, ROICols, Direct)</l>
+<l>*write_tuple(spoke_paras, PreFile+'spokeParas.tup')</l>
+<l>* write_tuple(ROIRows, PreFile+'sopkeParaRow.tup')</l>
+<l>* write_tuple(ROICols, PreFile+'sopkeParaCol.tup')</l>
+<l>* write_tuple(Direct, PreFile+'sopkeParaDir.tup')</l>
 <c></c>
 <c></c>
 <l>read_tuple(PreFile+'spokeParas.tup', spoke_paras)</l>
-<l>read_tuple(PreFile+'sopkeParaRow.tup', ROIRows)</l>
-<l>read_tuple(PreFile+'sopkeParaCol.tup', ROICols)</l>
-<l>read_tuple(PreFile+'sopkeParaDir.tup', Direct)</l>
+<l>* read_tuple(PreFile+'sopkeParaRow.tup', ROIRows)</l>
+<l>* read_tuple(PreFile+'sopkeParaCol.tup', ROICols)</l>
+<l>* read_tuple(PreFile+'sopkeParaDir.tup', Direct)</l>
 <c></c>
 <c></c>
 <l>spoke (Image, Regions1, spoke_paras[0], spoke_paras[1], spoke_paras[2], spoke_paras[3], spoke_paras[4], spoke_paras[5],spoke_paras[6], ROIRows, ROICols, Direct, ResultRow, ResultColumn, ArcType)</l>
 <l>dev_set_color('yellow')</l>
 <l>dev_clear_window()</l>
+<l>*dev_set_part(867,1050,1086,1502)</l>
 <l>dev_display(Image)</l>
 <l>for Index := 0 to |ResultRow|-1 by 1</l>
 <l>    disp_cross(WindowHandle, ResultRow[Index], ResultColumn[Index], 6, 0)</l>
 <l>endfor</l>
-<c></c>
 <l>gen_contour_polygon_xld(Contour,ResultRow, ResultColumn)</l>
-<c></c>
 <l>fit_circle_contour_xld(Contour, 'algebraic', -1, 0, 0, 3, 2, Row, Column, Radius, StartPhi, EndPhi, PointOrder)</l>
 <l>dev_set_draw('margin')</l>
 <l>dev_clear_window()</l>
@@ -45,8 +97,8 @@
 <l>gen_circle(Circle, Row, Column, Radius)</l>
 <c></c>
 <l>dev_display(Circle)</l>
-<c></c>
-<c></c>
+<l>stop()</l>
+<l>endfor</l>
 </body>
 <docu id="main">
 <parameters/>

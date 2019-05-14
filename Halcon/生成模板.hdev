@@ -4,13 +4,13 @@
 <interface/>
 <body>
 <l>Group:=1</l>
-<l>PoseIndex:=2</l>
-<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
+<l>PoseIndex:=10</l>
+<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_'+PoseIndex+'.png')</l>
 <l>*mean_image(Image11117455Cam0, Image11117455Cam0, 3, 3)</l>
 <l>get_image_size(Image11117455Cam0, Width, Height)</l>
 <c></c>
 <c></c>
-<l>* draw Model Roi</l>
+<c>* draw Model Roi</c>
 <l>draw_rectangle2(200000, Row, Column, Phi, Length1, Length2)</l>
 <l>ModelRoi:=[Row, Column, Phi, Length1, Length2,-0.39,0.79]</l>
 <l>write_tuple(ModelRoi, './Model/ModelRoi.tup')</l>

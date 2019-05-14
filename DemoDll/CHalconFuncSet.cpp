@@ -213,48 +213,105 @@ void CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine
 }
 void CHalconFuncSet::FindCircle(HObject Image, string Para, CCircleModel* pCircle)
 {
-	HObject  ho_Regions1;
-	HObject  ho_Contour, ho_Circle;
+	// Local iconic variables
+	HObject ho_ImageReduced,  ho_Rectangle, ho_Regions, ho_ConnectedRegions;
+	HObject  ho_SelectedRegions, ho_Regions1, ho_Contour, ho_Circle;
 
 	// Local control variables
-	HTuple  hv_WindowHandle, hv_PreFile, hv_spoke_paras;
+	HTuple  hv_Index1, hv_Group, hv_PoseIndex, hv_CircleIndex;
+	HTuple  hv_PreFile, hv_ModelID, hv_RowModel, hv_ColumnModel;
+	HTuple  hv_AngleModel, hv_Score, hv_RowOrigin, hv_ColumnOrigin;
+	HTuple  hv_HomMat2D, hv_WindowHandle, hv_spoke_paras, hv_Row1;
+	HTuple  hv_Column1, hv_RectRoiSearch, hv_AbsoluteHisto;
+	HTuple  hv_RelativeHisto, hv_Indices, hv_IndexSelect, hv_SelectIndex;
+	HTuple  hv_Area, hv_Row2, hv_Column2, hv_Row3, hv_Column3;
 	HTuple  hv_ROIRows, hv_ROICols, hv_Direct, hv_ResultRow;
 	HTuple  hv_ResultColumn, hv_ArcType, hv_Index, hv_Row, hv_Column;
 	HTuple  hv_Radius, hv_StartPhi, hv_EndPhi, hv_PointOrder;
 
-	//ReadImage(&ho_Image, "C:/Users/cn11321/source/Code/image/RawImage/Robot_03.png");
-	//MeanImage(Image, &Image, 3, 3);
 
-	//hv_PreFile = "./Para/Spoke2/";
-
+	//读取参数
+	ReadShapeModel((Para + "../Model/Model.shm").c_str(), &hv_ModelID);
+	ReadTuple((Para+ "RectRoiSearch.tup").c_str(), &hv_RectRoiSearch);
 	ReadTuple((Para + "spokeParas.tup").c_str(), &hv_spoke_paras);
-	ReadTuple((Para + "sopkeParaRow.tup").c_str(), &hv_ROIRows);
-	ReadTuple((Para + "sopkeParaCol.tup").c_str(), &hv_ROICols);
-	ReadTuple((Para + "sopkeParaDir.tup").c_str(), &hv_Direct);
 
 
-	spoke(Image, &ho_Regions1, HTuple(hv_spoke_paras[0]), HTuple(hv_spoke_paras[1]),
+
+	//做变换
+	FindShapeModel(Image, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
+		0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
+	GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
+	VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
+		hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &hv_HomMat2D);
+	AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
+
+
+		
+	GenRectangle2(&ho_Rectangle, HTuple(hv_RectRoiSearch[0]), HTuple(hv_RectRoiSearch[1]),
+		HTuple(hv_RectRoiSearch[2]), HTuple(hv_RectRoiSearch[3]), HTuple(hv_RectRoiSearch[4]));
+	ReduceDomain(Image, ho_Rectangle, &ho_ImageReduced);
+	ScaleImageMax(ho_ImageReduced, &ho_ImageReduced);
+
+
+	//找圆形区域
+	GrayHisto(ho_Rectangle, ho_ImageReduced, &hv_AbsoluteHisto, &hv_RelativeHisto);
+	TupleSortIndex(hv_AbsoluteHisto, &hv_Indices);
+	hv_IndexSelect = 255;
+	while (0 != ((HTuple(hv_Indices[hv_IndexSelect]) + 20) > 255))
+	{
+		hv_IndexSelect = hv_IndexSelect - 1;
+	}
+	Threshold(ho_ImageReduced, &ho_Regions, HTuple(hv_Indices[hv_IndexSelect]) + 30, 255);
+	Connection(ho_Regions, &ho_ConnectedRegions);
+	SelectShape(ho_ConnectedRegions, &ho_SelectedRegions, (HTuple("area").Append("circularity")),"and", (HTuple(266.06).Append(0.5)), (HTuple(5532.11).Append(1)));
+	SortRegion(ho_SelectedRegions, &ho_SelectedRegions, "first_point", "true", "column");
+
+	int nCircleIndex = Para.find("C1")!=-1? 1:2;
+	if (0 != (nCircleIndex == 1))
+	{
+		hv_SelectIndex = 0;
+	}
+	else
+	{
+		hv_SelectIndex = 1;
+	}
+
+	AreaCenter(ho_SelectedRegions, &hv_Area, &hv_Row1, &hv_Column1);
+	IntersectionLineCircle(HTuple(hv_Row1[hv_SelectIndex]) - 50, HTuple(hv_Column1[hv_SelectIndex]),
+		HTuple(hv_Row1[hv_SelectIndex]) + 50, HTuple(hv_Column1[hv_SelectIndex]), HTuple(hv_Row1[hv_SelectIndex]),
+		HTuple(hv_Column1[hv_SelectIndex]), 26, 0, 6.28318, "positive", &hv_Row2,
+		&hv_Column2);
+	IntersectionLineCircle(HTuple(hv_Row1[hv_SelectIndex]), HTuple(hv_Column1[hv_SelectIndex]) - 50,
+		HTuple(hv_Row1[hv_SelectIndex]), HTuple(hv_Column1[hv_SelectIndex]) + 50, HTuple(hv_Row1[hv_SelectIndex]),
+		HTuple(hv_Column1[hv_SelectIndex]), 26, 0, 6.28318, "positive", &hv_Row3,
+		&hv_Column3);
+
+	//自动生成Spoke
+	hv_ROIRows.Clear();
+	hv_ROIRows.Append(hv_Row2);
+	hv_ROIRows.Append(hv_Row3);
+	hv_ROIRows.Append(HTuple(hv_Row2[0]));
+	hv_ROICols.Clear();
+	hv_ROICols.Append(hv_Column2);
+	hv_ROICols.Append(hv_Column3);
+	hv_ROICols.Append(HTuple(hv_Column2[0]));
+	hv_Direct = "inner";
+
+
+	spoke(ho_ImageReduced, &ho_Regions1, HTuple(hv_spoke_paras[0]), HTuple(hv_spoke_paras[1]),
 		HTuple(hv_spoke_paras[2]), HTuple(hv_spoke_paras[3]), HTuple(hv_spoke_paras[4]),
 		HTuple(hv_spoke_paras[5]), HTuple(hv_spoke_paras[6]), hv_ROIRows, hv_ROICols,
 		hv_Direct, &hv_ResultRow, &hv_ResultColumn, &hv_ArcType);
 
-
-	HTuple end_val27 = (hv_ResultRow.TupleLength()) - 1;
-	HTuple step_val27 = 1;
-
-
-
+		
 	GenContourPolygonXld(&ho_Contour, hv_ResultRow, hv_ResultColumn);
-
 	FitCircleContourXld(ho_Contour, "algebraic", -1, 0, 0, 3, 2, &hv_Row, &hv_Column,
 		&hv_Radius, &hv_StartPhi, &hv_EndPhi, &hv_PointOrder);
-
-	GenCircle(&ho_Circle, hv_Row, hv_Column, hv_Radius);
 	pCircle->CenterPoint.X = hv_Column.D();
 	pCircle->CenterPoint.Y = hv_Row.D();
 	pCircle->Radius = hv_Radius.D();
+	
 }
-
 
 void CHalconFuncSet::spoke(HObject ho_Image, HObject *ho_Regions, HTuple hv_Elements, HTuple hv_DetectHeight,
 	HTuple hv_DetectWidth, HTuple hv_Sigma, HTuple hv_Threshold, HTuple hv_Transition,
@@ -638,12 +695,12 @@ void CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result)
 	{
 	case CHalconFuncSet::RP_POSE01:
 	{
-		string ParaL1 = "./Para/Pose1/L1/";
-		string ParaL2 = "./Para/Pose1/L2/";
+		string ParaL1 = "./Para/Pose1/P1/";
+		
 		CLineModel Line1;
 		CLineModel Line2;
-		FindLine(m_ImageGen, ParaL1, &Line1);
-		FindLine(m_ImageGen, ParaL2, &Line2);
+		FindPair(m_ImageGen, ParaL1, &Line1, &Line2);
+	
 		PaintLine(m_ImageGen, m_ImageGen, Line1);
 		PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
 		int n = 0;
