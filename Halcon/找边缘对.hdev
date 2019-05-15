@@ -5,9 +5,9 @@
 <body>
 <c></c>
 <l>for Index2 := 1 to 9 by 1</l>
-<l>Group:=2</l>
-<l>PoseIndex:=10</l>
-<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_'+PoseIndex+'.png')</l>
+<l>Group:=1</l>
+<l>PoseIndex:=3</l>
+<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
 <l>*mean_image(Image11117455Cam0, Image11117455Cam0, 3, 3)</l>
 <l>get_image_size(Image11117455Cam0, Width, Height)</l>
 <l>SearchPara:=[-0.39, 0.79, 0.5, 1, 0.1]</l>
@@ -34,8 +34,8 @@
 <l>PreFile:='./Para/Pose'+PoseIndex+'/P1/'</l>
 <l>stop()</l>
 <l>* draw_rectangle2(WindowHandle, Row, Column, Phi, Length1, Length2)</l>
-<l> RoiTuple:=[Row, Column, Phi, Length1, Length2,1,20,'negative_strongest','first']</l>
-<l> write_tuple(RoiTuple, PreFile+'Roi.tup')</l>
+<l>*  RoiTuple:=[Row, Column, Phi, Length1, Length2,1,20,'negative_strongest','first']</l>
+<l>*  write_tuple(RoiTuple, PreFile+'Roi.tup')</l>
 <c></c>
 <c></c>
 <c></c>

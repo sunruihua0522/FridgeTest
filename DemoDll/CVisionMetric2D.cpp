@@ -47,3 +47,8 @@ void CVisionMetric2D::SaveImage(const char* FilePath)
 {
 	static_cast<CHalconFuncSet*> (m_pWapper)->SaveImage(FilePath);
 }
+
+void CVisionMetric2D:: Debug()
+{
+	MessageBox(0,"just for debug","",0);
+}

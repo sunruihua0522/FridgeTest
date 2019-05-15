@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.1" halcon_version="17.12">
+<procedure name="main">
+<interface/>
+<body>
+<l>Group:=10</l>
+<l>PoseIndex:=3</l>
+<l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
+<l>*mean_image(Image11117455Cam0, Image11117455Cam0, 3, 3)</l>
+<l>get_image_size(Image11117455Cam0, Width, Height)</l>
+<l>*draw_rectangle1(200000, Row1, Column1, Row2, Column2)</l>
+<l>* TestRoi:=[Row1, Column1, Row2, Column2]</l>
+<l>* write_tuple(TestRoi, 'TestRoi.tup')</l>
+<l>read_tuple('TestRoi.tup', TestRoi)</l>
+<l>gen_rectangle1(Rectangle, TestRoi[0], TestRoi[1], TestRoi[2], TestRoi[3])</l>
+<l>reduce_domain(Image11117455Cam0, Rectangle, ImageReduced)</l>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

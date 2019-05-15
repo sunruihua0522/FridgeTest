@@ -3,13 +3,13 @@
 <procedure name="main">
 <interface/>
 <body>
-<l>for Index1 := 1 to 9 by 1</l>
+<l>for Index1 := 1 to 10 by 1</l>
 <c></c>
 <l>Group:=Index1</l>
-<l>PoseIndex:=8</l>
-<l>CircleIndex:=1</l>
+<l>PoseIndex:=3</l>
+<l>CircleIndex:=2</l>
 <l>read_image (Image,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
-<c></c>
+<l>mean_image(Image, ImageMean, 3,3)</l>
 <c></c>
 <c>*做变换</c>
 <l>PreFile:='./Para/Pose'+PoseIndex+'/Model/'</l>
@@ -51,7 +51,10 @@
 <l>endwhile</l>
 <l>threshold (Image, Regions, Indices[IndexSelect]+30, 255)</l>
 <l>connection(Regions, ConnectedRegions)</l>
-<l>select_shape (ConnectedRegions, SelectedRegions, ['area','circularity'], 'and', [266.06,0.5], [5532.11,1])</l>
+<l>dilation_circle(ConnectedRegions, ConnectedRegions, 20)</l>
+<l>union1(ConnectedRegions, ConnectedRegions)</l>
+<l>connection(ConnectedRegions, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, ['area','circularity','row'], 'and', [3165,0.7,RectRoiSearch[0]-112], [10000,1,RectRoiSearch[0]+50])</l>
 <l>sort_region(SelectedRegions, SelectedRegions, 'first_point', 'true', 'column')</l>
 <c></c>
 <l>if (CircleIndex==1)</l>

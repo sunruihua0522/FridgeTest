@@ -143,8 +143,15 @@ void CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine
 
 	GetImageSize(Image, &hv_Width, &hv_Height);
 
+
 	Log("Read"+ Para + "Roi.tup......");
+#ifdef LOG
+	MessageBox(0, "Ready to load Roi.tup","", 0);
+#endif
 	ReadTuple((Para + "Roi.tup").c_str(), &hv_RoiTuple);
+#ifdef LOG
+	MessageBox(0, "Load File OK", "", 0);
+#endif
 	Log("Read" + Para + "Roi.tup......Ok");
 
 

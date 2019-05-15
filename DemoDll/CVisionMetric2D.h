@@ -33,6 +33,7 @@ public:
 
 	void SaveImage(const char* FilePath);
 
+	void Debug();
 private:
 	void* m_pWapper;
 	double m_pResult[20];
