@@ -2,6 +2,7 @@
 //
 
 #include "pch.h"
+#define Log
 #include "CVisionMetric2D.h"
 #include <iostream>
 using namespace std;
@@ -12,8 +13,8 @@ int main()
 	int i = 1;
 	//for (int i = 1;i < 10;i++)
 	{
-		//int j = 1;
-		for (int j = 0;j < 6;j++)
+
+		for (int j = 0;j < 1;j++)
 		{
 			int PoseIndex = 1;
 			int Index = IndexBuff[j];

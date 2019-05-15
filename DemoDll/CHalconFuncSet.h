@@ -52,6 +52,7 @@ private:
 	double DistanceLineLine(CLineModel& Line1, CLineModel& Line2);
 	double DistanceCircleLine(CCircleModel& Circle, CLineModel& Line);
 
+	void Log(string Msg);
 	HObject m_ImageGen,m_ImageOutFore,m_ImageOutBk;
 
 };

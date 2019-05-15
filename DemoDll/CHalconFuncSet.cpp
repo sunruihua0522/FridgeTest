@@ -1,5 +1,6 @@
 ﻿
 #include "CHalconFuncSet.h"
+#define LOG
 CHalconFuncSet::CHalconFuncSet()
 {
 	
@@ -31,8 +32,21 @@ void CHalconFuncSet::FindLine(HObject Image, string Para, CLineModel* pLine)
 
 	MeanImage(Image, &Image, 3, 3);
 	GetImageSize(Image, &hv_Width, &hv_Height);
-
+	
 	ReadTuple((Para + "Roi.tup").c_str(), &hv_RoiTuple);
+
+
+	HTuple hv_ModelID, hv_RowModel, hv_ColumnModel, hv_HomMat2D;
+	HTuple  hv_AngleModel, hv_Score, hv_RowOrigin, hv_ColumnOrigin;
+	ReadShapeModel((Para + "../Model/Model.shm").c_str(), &hv_ModelID);
+
+	//做变换
+	FindShapeModel(Image, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
+		0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
+	GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
+	VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
+		hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &hv_HomMat2D);
+	AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
 
 
 	hv_Row = ((const HTuple&)hv_RoiTuple)[0];
@@ -124,12 +138,30 @@ void CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine
 	HTuple  hv_ColBegin1, hv_RowEnd1, hv_ColEnd1, hv_Nr1, hv_Nc1;
 	HTuple  hv_Dist1;
 
+
 	//ReadImage(&ho_Image11117455Cam0, "C:/Users/cn11321/source/Code/image/RawImage/Robot_01.png");
 
 	GetImageSize(Image, &hv_Width, &hv_Height);
 
-
+	Log("Read"+ Para + "Roi.tup......");
 	ReadTuple((Para + "Roi.tup").c_str(), &hv_RoiTuple);
+	Log("Read" + Para + "Roi.tup......Ok");
+
+
+	HTuple hv_ModelID, hv_RowModel, hv_ColumnModel, hv_HomMat2D;
+	HTuple  hv_AngleModel, hv_Score, hv_RowOrigin, hv_ColumnOrigin;
+	ReadShapeModel((Para + "../Model/Model.shm").c_str(), &hv_ModelID);
+
+	//做变换
+	FindShapeModel(Image, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
+		0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
+	GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
+	VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
+		hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &hv_HomMat2D);
+	AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
+
+
+
 	hv_Row = ((const HTuple&)hv_RoiTuple)[0];
 	hv_Column = ((const HTuple&)hv_RoiTuple)[1];
 	hv_Phi = ((const HTuple&)hv_RoiTuple)[2];
@@ -139,6 +171,8 @@ void CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine
 
 
 	GenRectangle2(&ho_Rectangle, hv_Row, hv_Column, hv_Phi, hv_Length1, hv_Length2);
+	Log("Rec Ok");
+
 
 	hv_CaliperNum = 100;
 	hv_ExpectPairNum = 1;
@@ -160,53 +194,58 @@ void CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine
 	hv_RowSecondList = HTuple();
 	hv_ColSecondList = HTuple();
 
+	
+	HTuple end_val41 = hv_CaliperNum;
+	HTuple step_val41 = 1;
+	for (hv_Index = 1; hv_Index.Continue(end_val41, step_val41); hv_Index += step_val41)
 	{
-		HTuple end_val41 = hv_CaliperNum;
-		HTuple step_val41 = 1;
-		for (hv_Index = 1; hv_Index.Continue(end_val41, step_val41); hv_Index += step_val41)
+		GenMeasureRectangle2(hv_newRow, hv_newCol, hv_Phi, hv_NewL1, hv_NewL2, hv_Width,
+			hv_Height, "nearest_neighbor", &hv_MeasureHandle);
+		Log("GMR Ok");
+		//positive找白边，negative找黑边
+		MeasurePairs(Image, hv_MeasureHandle, hv_RoiTuple[5], hv_RoiTuple[6], hv_RoiTuple[7],
+			hv_RoiTuple[8], &hv_RowEdgeFirst, &hv_ColumnEdgeFirst, &hv_AmplitudeFirst, &hv_RowEdgeSecond,
+			&hv_ColumnEdgeSecond, &hv_AmplitudeSecond, &hv_IntraDistance, &hv_InterDistance);
+		Log("MP Ok");
+		hv_newRow = hv_BaseRow - (((hv_NewL2*hv_Cos)*hv_Index) * 2);
+		hv_newCol = hv_BaseCol - (((hv_NewL2*hv_Sin)*hv_Index) * 2);
+
+		TupleLength(hv_RowEdgeFirst, &hv_Length);
+		TupleLength(hv_RowEdgeSecond, &hv_Length3);
+
+		if (0 != (HTuple(HTuple((hv_RowEdgeFirst.TupleLength()) > 0).TupleAnd((hv_RowEdgeFirst.TupleLength()) == (hv_RowEdgeSecond.TupleLength()))).TupleAnd(hv_ExpectPairNum == (hv_RowEdgeFirst.TupleLength()))))
 		{
-			GenMeasureRectangle2(hv_newRow, hv_newCol, hv_Phi, hv_NewL1, hv_NewL2, hv_Width,
-				hv_Height, "nearest_neighbor", &hv_MeasureHandle);
-			//positive找白边，negative找黑边
-			MeasurePairs(Image, hv_MeasureHandle, hv_RoiTuple[5], hv_RoiTuple[6], hv_RoiTuple[7],
-				hv_RoiTuple[8], &hv_RowEdgeFirst, &hv_ColumnEdgeFirst, &hv_AmplitudeFirst, &hv_RowEdgeSecond,
-				&hv_ColumnEdgeSecond, &hv_AmplitudeSecond, &hv_IntraDistance, &hv_InterDistance);
-			hv_newRow = hv_BaseRow - (((hv_NewL2*hv_Cos)*hv_Index) * 2);
-			hv_newCol = hv_BaseCol - (((hv_NewL2*hv_Sin)*hv_Index) * 2);
-
-			TupleLength(hv_RowEdgeFirst, &hv_Length);
-			TupleLength(hv_RowEdgeSecond, &hv_Length3);
-
-			if (0 != (HTuple(HTuple((hv_RowEdgeFirst.TupleLength()) > 0).TupleAnd((hv_RowEdgeFirst.TupleLength()) == (hv_RowEdgeSecond.TupleLength()))).TupleAnd(hv_ExpectPairNum == (hv_RowEdgeFirst.TupleLength()))))
-			{
-				hv_RowFirstList = hv_RowFirstList.TupleConcat(hv_RowEdgeFirst);
-				hv_ColFirstList = hv_ColFirstList.TupleConcat(hv_ColumnEdgeFirst);
-				hv_RowSecondList = hv_RowSecondList.TupleConcat(hv_RowEdgeSecond);
-				hv_ColSecondList = hv_ColSecondList.TupleConcat(hv_ColumnEdgeSecond);
-			}
-			CloseMeasure(hv_MeasureHandle);
+			hv_RowFirstList = hv_RowFirstList.TupleConcat(hv_RowEdgeFirst);
+			hv_ColFirstList = hv_ColFirstList.TupleConcat(hv_ColumnEdgeFirst);
+			hv_RowSecondList = hv_RowSecondList.TupleConcat(hv_RowEdgeSecond);
+			hv_ColSecondList = hv_ColSecondList.TupleConcat(hv_ColumnEdgeSecond);
 		}
+		CloseMeasure(hv_MeasureHandle);
 	}
+	
+	Log("M Ok");
 	if (0 != ((hv_RowFirstList.TupleLength()) > 2))
 	{
+		
 		GenContourPolygonXld(&ho_Contour, hv_RowFirstList, hv_ColFirstList);
+		Log("GCPX1 Ok");
 		FitLineContourXld(ho_Contour, "gauss", -1, 0, 5, 2, &hv_RowBegin, &hv_ColBegin,
 			&hv_RowEnd, &hv_ColEnd, &hv_Nr, &hv_Nc, &hv_Dist);
-
+		Log("FCX1 Ok");
 		pStartLine->StartPoint.X = hv_ColBegin.D();
 		pStartLine->StartPoint.Y = hv_RowBegin.D();
 		pStartLine->EndPoint.X = hv_ColEnd.D();
 		pStartLine->EndPoint.Y = hv_RowEnd.D();
 
 		GenContourPolygonXld(&ho_Contour1, hv_RowSecondList, hv_ColSecondList);
+		Log("GCPX2 Ok");
 		FitLineContourXld(ho_Contour1, "gauss", -1, 0, 5, 2, &hv_RowBegin1, &hv_ColBegin1,
 			&hv_RowEnd1, &hv_ColEnd1, &hv_Nr1, &hv_Nc1, &hv_Dist1);
-
+		Log("FCX2 Ok");
 		pEndLine->StartPoint.X = hv_ColBegin1.D();
 		pEndLine->StartPoint.Y = hv_RowBegin1.D();
 		pEndLine->EndPoint.X = hv_ColEnd1.D();
 		pEndLine->EndPoint.Y = hv_RowEnd1.D();
-
 
 	}
 
@@ -866,4 +905,11 @@ double CHalconFuncSet::DistanceCircleLine(CCircleModel& Circle, CLineModel& Line
 	HTuple D;
 	DistancePl(Circle.CenterPoint.Y, Circle.CenterPoint.X, Line.StartPoint.Y, Line.StartPoint.X, Line.EndPoint.Y, Line.EndPoint.X, &D);
 	return D.D();
+}
+void CHalconFuncSet::Log(string Msg)
+{
+	Msg = Msg + "\n";
+	#ifdef LOG
+		printf(Msg.c_str());
+	#endif
 }
