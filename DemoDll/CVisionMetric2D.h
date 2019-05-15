@@ -23,19 +23,32 @@ public:
 		RP_POSE09,
 		RP_POSE10
 	};
-
-	//! 设置图像数据
+	
+	//! 输入图像文件
+	void SetImageFile(const char* acFilePathNamefile_path_name);
+	
+	//! 输入图像数据
 	void SetImageData(unsigned char* data, int width, int height);
-	void SetImageData(char* FilePath);
 
-	//! 计算,-1为终止符号
-	double* Compute(EN_RobotPose robot_pose);
+	enum ErrorCode
+	{
+		// to do
+		EC_FILE_NOT_EXIST = -3,
+		EC_FILE_DATA_NOT_EXIST = -2,
+		EC_FAILED = -1,
+		EC_SUCCESS = 0
+	};
 
-	void SaveImage(const char* FilePath);
 
-	void Debug();
+	int Compute(EN_RobotPose robot_pose, double *param_list, int& num_param);
+	
+	//! 输出图像文件
+	void SaveImage(const char* file_path_name);
+	
+	//! 输出图像数据
+	bool GetImageData( unsigned char* rgb_data, int width ,int height);
+
 private:
-	void* m_pWapper;
-	double m_pResult[20];
+	void*  m_pWapper;
 };
 

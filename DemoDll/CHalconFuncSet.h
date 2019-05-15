@@ -16,9 +16,9 @@ public:
 	CHalconFuncSet();
 	~CHalconFuncSet();
 	void SetWindowHandle(HTuple WindowHandle);
-	void FindLine(HObject Image, string Para, CLineModel* pLine);
-	void FindPair(HObject Image, string Para, CLineModel* pStartLine, CLineModel* pEndLine);
-	void FindCircle(HObject Image, string Para, CCircleModel* pCircle);
+	int FindLine(HObject Image, string Para, CLineModel* pLine);
+	int FindPair(HObject Image, string Para, CLineModel* pStartLine, CLineModel* pEndLine);
+	int FindCircle(HObject Image, string Para, CCircleModel* pCircle);
 	enum EnumPicType
 	{
 		RP_POSE01,
@@ -32,10 +32,22 @@ public:
 		RP_POSE09,
 		RP_POSE10
 	};
-	void ProcessImage(EnumPicType ImageType, double* Result);
+
+	enum ErrorCode
+	{
+		SUCCESS,
+		FILE_IS_NOT_FOUND,
+		MODEL_NOT_FOUND,
+		NOT_ENOUGH_TUPLE,
+		NOT_ENOUGH_OBJ,
+		PARA_INVALID,
+		FAILED,
+	};
+	int ProcessImage(EnumPicType ImageType, double* Result,int& Num);
 	void GenImage(unsigned char* data, int width, int height);
 	void GenImage(char* FilePath);
 	void SaveImage(const char* FilePath);
+	void GetImageData(unsigned char* rgb_data,int width, int height);
 private:
 	void spoke(HObject ho_Image, HObject *ho_Regions, HTuple hv_Elements, HTuple hv_DetectHeight,
 		HTuple hv_DetectWidth, HTuple hv_Sigma, HTuple hv_Threshold, HTuple hv_Transition,
@@ -52,7 +64,6 @@ private:
 	double DistanceLineLine(CLineModel& Line1, CLineModel& Line2);
 	double DistanceCircleLine(CCircleModel& Circle, CLineModel& Line);
 
-	void Log(string Msg);
 	HObject m_ImageGen,m_ImageOutFore,m_ImageOutBk;
 
 };

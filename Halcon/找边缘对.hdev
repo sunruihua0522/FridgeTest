@@ -6,7 +6,7 @@
 <c></c>
 <l>for Index2 := 1 to 9 by 1</l>
 <l>Group:=1</l>
-<l>PoseIndex:=3</l>
+<l>PoseIndex:=1</l>
 <l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
 <l>*mean_image(Image11117455Cam0, Image11117455Cam0, 3, 3)</l>
 <l>get_image_size(Image11117455Cam0, Width, Height)</l>
