@@ -40,16 +40,15 @@ public:
 	};
 
 
-	int Compute(EN_RobotPose robot_pose, double *param_list, int& num_param);
+	int Compute(EN_RobotPose robot_pose, double *param_list, int& num_param, bool draw_image=false);
 	
 	//! 输出图像文件
 	void SaveImage(const char* file_path_name);
 	
-	//! 输出图像数据,没有实现暂时，后面再弄
+	//! 输出图像数据
 	bool GetImageData( unsigned char* rgb_data, int width ,int height);
 
 private:
 	void*  m_pWapper;
-	double m_pResult[20];
 };
 

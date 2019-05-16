@@ -43,11 +43,12 @@ public:
 		PARA_INVALID,
 		FAILED,
 	};
-	int ProcessImage(EnumPicType ImageType, double* Result,int& Num);
+	int ProcessImage(EnumPicType ImageType, double* Result,int& Num, bool draw_image);
 	void GenImage(unsigned char* data, int width, int height);
 	void GenImage(char* FilePath);
 	void SaveImage(const char* FilePath);
 	void GetImageData(unsigned char* rgb_data,int width, int height);
+	int AdjustImage(HObject ImageIn, HObject* ImageOut, string Para, HTuple& Hom2D);
 private:
 	void spoke(HObject ho_Image, HObject *ho_Regions, HTuple hv_Elements, HTuple hv_DetectHeight,
 		HTuple hv_DetectWidth, HTuple hv_Sigma, HTuple hv_Threshold, HTuple hv_Transition,

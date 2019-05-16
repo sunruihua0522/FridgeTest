@@ -24,11 +24,11 @@ void CVisionMetric2D::SetImageFile(const char* acFilePathNamefile_path_name)
 	static_cast<CHalconFuncSet*> (m_pWapper)->GenImage(_strdup(acFilePathNamefile_path_name));
 }
 //! 计算
-int CVisionMetric2D::Compute(EN_RobotPose robot_pose, double *param_list, int& num_param)
+int CVisionMetric2D::Compute(EN_RobotPose robot_pose, double *param_list, int& num_param,bool draw_image)
 {
 	try
 	{
-		return 0==static_cast<CHalconFuncSet*> (m_pWapper)->ProcessImage((CHalconFuncSet::EnumPicType)robot_pose, param_list, num_param)? EC_SUCCESS : EC_FAILED;
+		return 0==static_cast<CHalconFuncSet*> (m_pWapper)->ProcessImage((CHalconFuncSet::EnumPicType)robot_pose, param_list, num_param,draw_image)? EC_SUCCESS : EC_FAILED;
 	}
 	catch(exception ex)
 	{

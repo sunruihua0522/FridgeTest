@@ -33,6 +33,11 @@ int main()
 			memset(Buff, 0, 100);
 			sprintf_s(Buff, "%d.bmp", Index);
 		//	Vision.SaveImage(Buff);
+
+			unsigned char* ImageBuff = (unsigned char*)malloc(2592 * 2048 * 3);
+			int ImageWidth=2592, ImageHeight=2048;
+			Vision.GetImageData(ImageBuff, ImageWidth, ImageHeight);
+
 			cout << "-------Num=" << Num <<"--------" <<endl;
 
 			for (int i = 0;i < Num;i++)

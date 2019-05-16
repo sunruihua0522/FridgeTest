@@ -40,7 +40,7 @@ public:
 	};
 
 
-	int Compute(EN_RobotPose robot_pose, double *param_list, int& num_param);
+	int Compute(EN_RobotPose robot_pose, double *param_list, int& num_param, bool draw_image=false);
 	
 	//! 输出图像文件
 	void SaveImage(const char* file_path_name);

@@ -16,10 +16,30 @@ void  CHalconFuncSet::SetWindowHandle(HTuple WindowHandle)
 	//this->WindowHandle = WindowHandle;
 }
 
+int CHalconFuncSet::AdjustImage(HObject ImageIn, HObject* ImageOut, string Para, HTuple& Hom2D)
+{
+	HTuple hv_ModelID, hv_RowModel, hv_ColumnModel;
+	HTuple  hv_AngleModel, hv_Score, hv_RowOrigin, hv_ColumnOrigin;
+	if (_access((Para + "Model/Model.shm").c_str(), 0) != 0)
+		return FILE_IS_NOT_FOUND;
+	ReadShapeModel((Para + "Model/Model.shm").c_str(), &hv_ModelID);
+
+	//做变换
+	FindShapeModel(ImageIn, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
+		0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
+	if (hv_Score.TupleLength() == 0)
+		return MODEL_NOT_FOUND;
+	GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
+	VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
+		hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &Hom2D);
+	AffineTransImage(ImageIn, ImageOut, Hom2D, "constant", "false");
+	ClearShapeModel(hv_ModelID);
+	//WriteImage(*ImageOut, "bmp", 0, "ImageOut.bmp");
+	return SUCCESS;
+}
+
 int CHalconFuncSet::FindLine(HObject Image, string Para, CLineModel* pLine)
 {
-
-
 	HObject  ho_Rectangle, ho_Contour;
 	HObject  ho_RegionLines;
 
@@ -32,30 +52,30 @@ int CHalconFuncSet::FindLine(HObject Image, string Para, CLineModel* pLine)
 	HTuple  hv_MeasureHandle, hv_RowEdge, hv_ColumnEdge, hv_Amplitude;
 	HTuple  hv_Distance, hv_RowBegin, hv_ColBegin, hv_RowEnd;
 	HTuple  hv_ColEnd, hv_Nr, hv_Nc, hv_Dist;
-
-	if (_access((Para + "Roi.tup").c_str(), 0) != 0 || _access((Para + "../Model/Model.shm").c_str(), 0) != 0)
+	HObject ImageMean;
+	if (_access((Para + "Roi.tup").c_str(), 0) != 0)
 		return FILE_IS_NOT_FOUND;
 
 
-	MeanImage(Image, &Image, 3, 3);
-	GetImageSize(Image, &hv_Width, &hv_Height);
+	MeanImage(Image, &ImageMean, 3, 3);
+	GetImageSize(ImageMean, &hv_Width, &hv_Height);
 	
 	ReadTuple((Para + "Roi.tup").c_str(), &hv_RoiTuple);
 
 
-	HTuple hv_ModelID, hv_RowModel, hv_ColumnModel, hv_HomMat2D;
-	HTuple  hv_AngleModel, hv_Score, hv_RowOrigin, hv_ColumnOrigin;
-	ReadShapeModel((Para + "../Model/Model.shm").c_str(), &hv_ModelID);
+	//HTuple hv_ModelID, hv_RowModel, hv_ColumnModel, hv_HomMat2D;
+	//HTuple  hv_AngleModel, hv_Score, hv_RowOrigin, hv_ColumnOrigin;
+	//ReadShapeModel((Para + "../Model/Model.shm").c_str(), &hv_ModelID);
 
-	//做变换
-	FindShapeModel(Image, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
-		0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
-	if (hv_Score.TupleLength() == 0)
-		return MODEL_NOT_FOUND;
-	GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
-	VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
-		hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &hv_HomMat2D);
-	AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
+	////做变换
+	//FindShapeModel(Image, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
+	//	0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
+	//if (hv_Score.TupleLength() == 0)
+	//	return MODEL_NOT_FOUND;
+	//GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
+	//VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
+	//	hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &hv_HomMat2D);
+	//AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
 
 
 	hv_Row = ((const HTuple&)hv_RoiTuple)[0];
@@ -93,7 +113,7 @@ int CHalconFuncSet::FindLine(HObject Image, string Para, CLineModel* pLine)
 				hv_Height, "nearest_neighbor", &hv_MeasureHandle);
 			//positive  黑-》白 negative  白-》黑
 
-			MeasurePos(Image, hv_MeasureHandle, HTuple(hv_RoiTuple[5]), HTuple(hv_RoiTuple[6]),
+			MeasurePos(ImageMean, hv_MeasureHandle, HTuple(hv_RoiTuple[5]), HTuple(hv_RoiTuple[6]),
 				HTuple(hv_RoiTuple[7]), HTuple(hv_RoiTuple[8]), &hv_RowEdge, &hv_ColumnEdge,
 				&hv_Amplitude, &hv_Distance);
 
@@ -127,7 +147,6 @@ int CHalconFuncSet::FindLine(HObject Image, string Para, CLineModel* pLine)
 }
 int CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine, CLineModel* pEndLine)
 {
-
 	// Local iconic variables
 	HObject  ho_Rectangle, ho_Contour;
 	HObject  ho_Contour1;
@@ -147,26 +166,26 @@ int CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine,
 	HTuple  hv_ColBegin1, hv_RowEnd1, hv_ColEnd1, hv_Nr1, hv_Nc1;
 	HTuple  hv_Dist1;
 
-	if (_access((Para + "Roi.tup").c_str(), 0) != 0 || _access((Para + "../Model/Model.shm").c_str(), 0) != 0)
+	if (_access((Para + "Roi.tup").c_str(), 0) != 0 )
 		return FILE_IS_NOT_FOUND;
 
 	GetImageSize(Image, &hv_Width, &hv_Height);
 	ReadTuple((Para + "Roi.tup").c_str(), &hv_RoiTuple);
 
-	HTuple hv_ModelID, hv_RowModel, hv_ColumnModel, hv_HomMat2D;
-	HTuple  hv_AngleModel, hv_Score, hv_RowOrigin, hv_ColumnOrigin;
-	ReadShapeModel((Para + "../Model/Model.shm").c_str(), &hv_ModelID);
+	//HTuple hv_ModelID, hv_RowModel, hv_ColumnModel, hv_HomMat2D;
+	//HTuple  hv_AngleModel, hv_Score, hv_RowOrigin, hv_ColumnOrigin;
+	//ReadShapeModel((Para + "../Model/Model.shm").c_str(), &hv_ModelID);
 
-	//做变换
-	FindShapeModel(Image, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
-		0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
-	if (hv_Score.TupleLength() == 0)
-		return MODEL_NOT_FOUND;
+	////做变换
+	//FindShapeModel(Image, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
+	//	0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
+	//if (hv_Score.TupleLength() == 0)
+	//	return MODEL_NOT_FOUND;
 
-	GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
-	VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
-		hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &hv_HomMat2D);
-	AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
+	//GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
+	//VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
+	//	hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &hv_HomMat2D);
+	//AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
 
 	hv_Row = ((const HTuple&)hv_RoiTuple)[0];
 	hv_Column = ((const HTuple&)hv_RoiTuple)[1];
@@ -220,6 +239,12 @@ int CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine,
 			hv_ColFirstList = hv_ColFirstList.TupleConcat(hv_ColumnEdgeFirst);
 			hv_RowSecondList = hv_RowSecondList.TupleConcat(hv_RowEdgeSecond);
 			hv_ColSecondList = hv_ColSecondList.TupleConcat(hv_ColumnEdgeSecond);
+
+			double x = hv_RowEdgeFirst.D();
+			double xX = hv_ColumnEdgeFirst.D();
+			double xXX = hv_RowEdgeSecond.D();
+			double xXXX = hv_ColumnEdgeSecond.D();
+			x= xX= xXX= xXXX=0;
 		}
 		CloseMeasure(hv_MeasureHandle);
 	}
@@ -269,28 +294,28 @@ int CHalconFuncSet::FindCircle(HObject Image, string Para, CCircleModel* pCircle
 	HTuple  hv_Radius, hv_StartPhi, hv_EndPhi, hv_PointOrder;
 
 
-	if (_access((Para + "../Model/Model.shm").c_str(), 0) != 0 || _access((Para + "RectRoiSearch.tup").c_str(), 0) != 0 || _access((Para + "spokeParas.tup").c_str(), 0) != 0)
+	if (_access((Para + "RectRoiSearch.tup").c_str(), 0) != 0 || _access((Para + "spokeParas.tup").c_str(), 0) != 0)
 		return FILE_IS_NOT_FOUND;
 
 
 	//读取参数
-	ReadShapeModel((Para + "../Model/Model.shm").c_str(), &hv_ModelID);
+	//ReadShapeModel((Para + "../Model/Model.shm").c_str(), &hv_ModelID);
 	ReadTuple((Para + "RectRoiSearch.tup").c_str(), &hv_RectRoiSearch);
 	ReadTuple((Para + "spokeParas.tup").c_str(), &hv_spoke_paras);
 
 
 
-	//做变换
-	FindShapeModel(Image, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
-		0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
-	if (hv_Score.TupleLength() == 0)
-		return MODEL_NOT_FOUND;
+	////做变换
+	//FindShapeModel(Image, hv_ModelID, -0.39, 0.79, 0.2, 1, 0.5, "least_squares",
+	//	0, 0.9, &hv_RowModel, &hv_ColumnModel, &hv_AngleModel, &hv_Score);
+	//if (hv_Score.TupleLength() == 0)
+	//	return MODEL_NOT_FOUND;
 
 
-	GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
-	VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
-		hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &hv_HomMat2D);
-	AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
+	//GetShapeModelOrigin(hv_ModelID, &hv_RowOrigin, &hv_ColumnOrigin);
+	//VectorAngleToRigid(hv_RowModel - hv_RowOrigin, hv_ColumnModel - hv_ColumnOrigin,
+	//	hv_AngleModel, hv_RowOrigin, hv_ColumnOrigin, 0, &hv_HomMat2D);
+	//AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
 
 
 		
@@ -752,16 +777,33 @@ void CHalconFuncSet::SaveImage(const char* FilePath)
 
 void CHalconFuncSet::GetImageData(unsigned char* rgb_data, int width, int height)
 {
+	HTuple PtRed, PtGreen, PtBlue, ImageWidth, ImageHeight,ImageType;
+	HObject Image;
+	if (this->m_ImageOutFore.IsInitialized() && this->m_ImageOutBk.IsInitialized())
+	{
+		Compose3(this->m_ImageOutFore, this->m_ImageOutBk, this->m_ImageOutBk, &Image);
+		GetImagePointer3(Image, &PtRed, &PtGreen, &PtBlue, &ImageType, &ImageWidth, &ImageHeight);
+		if (width > (Hlong)ImageWidth || height > (Hlong)ImageHeight)
+			throw new exception("Image width or height out of range!");
+		BYTE *pR = (BYTE *)PtRed[0].L();
+		BYTE *pG = (BYTE *)PtGreen[0].L();
+		BYTE *pB = (BYTE *)PtBlue[0].L();
 
+		memcpy(rgb_data, pR, width*height);
+		memcpy(rgb_data+ width * height, pG, width*height);
+		memcpy(rgb_data+ 2*width*height, pB, width*height);
+	}
+	
 }
 
 
 
-int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num)
+int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num, bool draw_image)
 {
 	int n = 0;
 	this->m_ImageOutFore = m_ImageGen;
 	this->m_ImageOutBk = m_ImageGen;
+	HTuple Hom2D;
 	bool RetList[] = { false,false,false,false,false,false,false,false,false,false,false,false,false };
 	switch (ImageType)
 	{
@@ -770,12 +812,16 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 	{
 		string ParaPath = "";
 		if(ImageType== CHalconFuncSet::RP_POSE01)
-			ParaPath = "./Para/Pose1/P1/";
+			ParaPath = "Pose1";
 		else
-			ParaPath = "./Para/Pose10/P1/";
+			ParaPath = "Pose2";
+		string ParaP1= "./Para/"+ ParaPath +"/P1/";
 		CLineModel Line1;
 		CLineModel Line2;
-		if (RetList[n] = (FindPair(m_ImageGen, ParaPath, &Line1, &Line2) == SUCCESS))
+		if (AdjustImage(m_ImageGen, &m_ImageGen, "./Para/" + ParaPath +"/", Hom2D) != SUCCESS)
+			return FAILED;
+		
+		if ((RetList[n] = (FindPair(m_ImageGen, ParaP1, &Line1, &Line2) == SUCCESS)) && draw_image)
 		{
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
@@ -812,21 +858,25 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 
 		CCircleModel Circle1;
 		CCircleModel Circle2;
+
+		if (AdjustImage(m_ImageGen,&m_ImageGen, "./Para/" + ParaPath+"/", Hom2D) != SUCCESS)
+			return FAILED;
+
 		int n = 0;
-		if (RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS))
+		if ((RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS)) && draw_image)
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
-		if (RetList[n+1] =(FindLine(m_ImageGen, ParaL2, &Line2) == SUCCESS))
+		if ((RetList[n+1] =(FindLine(m_ImageGen, ParaL2, &Line2) == SUCCESS)) && draw_image)
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
-		if (RetList[n + 2] = (FindLine(m_ImageGen, ParaL3, &Line3) == SUCCESS))
+		if ((RetList[n + 2] = (FindLine(m_ImageGen, ParaL3, &Line3) == SUCCESS)) && draw_image)
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line3);
-		if (RetList[n + 3] = (FindPair(m_ImageGen, ParaP1, &Line4, &Line5) == SUCCESS))
+		if ((RetList[n + 3] = (FindPair(m_ImageGen, ParaP1, &Line4, &Line5) == SUCCESS)) && draw_image)
 		{
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line4);
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line5);
 		}
-		if (RetList[n + 4] = (FindCircle(m_ImageGen, ParaSpoke1, &Circle1) == SUCCESS))
+		if ((RetList[n + 4] = (FindCircle(m_ImageGen, ParaSpoke1, &Circle1) == SUCCESS)) && draw_image)
 			PaintCircle(this->m_ImageOutFore, this->m_ImageOutBk, Circle1);
-		if (RetList[n + 5] = FindCircle(m_ImageGen, ParaSpoke2, &Circle2)==SUCCESS)
+		if ((RetList[n + 5] = (FindCircle(m_ImageGen, ParaSpoke2, &Circle2)==SUCCESS)) && draw_image)
 			PaintCircle(this->m_ImageOutFore, this->m_ImageOutBk, Circle2);
 		
 		//方通宽度
@@ -879,9 +929,13 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 		CLineModel Line2;
 		CLineModel Line3;
 
-		if (RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS))
+		if (AdjustImage(m_ImageGen,&m_ImageGen, "./Para/" + ParaPath + "/", Hom2D) != SUCCESS)
+			return FAILED;
+
+
+		if ((RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS)) && draw_image)
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
-		if (RetList[n + 1] = (FindPair(m_ImageGen, ParaP1, &Line2, &Line3) == SUCCESS))
+		if ((RetList[n + 1] = (FindPair(m_ImageGen, ParaP1, &Line2, &Line3) == SUCCESS)) && draw_image)
 		{
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line3);
