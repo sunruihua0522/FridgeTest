@@ -66,6 +66,7 @@ private:
 	double DistanceCircleLine(CCircleModel& Circle, CLineModel& Line);
 
 	HObject m_ImageGen,m_ImageOutFore,m_ImageOutBk;
+	CRITICAL_SECTION CS;
 
 };
 

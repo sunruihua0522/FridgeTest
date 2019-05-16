@@ -759,6 +759,7 @@ void CHalconFuncSet::dev_open_window_fit_image(HObject ho_Image, HTuple hv_Row, 
 void CHalconFuncSet::GenImage(unsigned char* data, int width, int height)
 {
 	GenImage1(&m_ImageGen, "byte", width, height, (Hlong)data);
+	WriteImage(m_ImageGen, "bmp", 0, "GrayImage");
 }
 void CHalconFuncSet::GenImage(char* FilePath)
 {
@@ -766,13 +767,17 @@ void CHalconFuncSet::GenImage(char* FilePath)
 }
 void CHalconFuncSet::SaveImage(const char* FilePath)
 {
+	//EnterCriticalSection(&CS);
 	HObject Image;
 	if (this->m_ImageOutFore.IsInitialized() && this->m_ImageOutBk.IsInitialized())
 	{
 		Compose3(this->m_ImageOutFore, this->m_ImageOutBk, this->m_ImageOutBk, &Image);
-		WriteImage(Image, "bmp", 0, FilePath);
+		WriteImage(Image, "jpg", 0, FilePath);
+		//Image.WriteObject(FilePath);
 	}
-		
+	
+	//Sleep(500);
+	//LeaveCriticalSection(&CS);
 }
 
 void CHalconFuncSet::GetImageData(unsigned char* rgb_data, int width, int height)
@@ -801,8 +806,7 @@ void CHalconFuncSet::GetImageData(unsigned char* rgb_data, int width, int height
 int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num, bool draw_image)
 {
 	int n = 0;
-	this->m_ImageOutFore = m_ImageGen;
-	this->m_ImageOutBk = m_ImageGen;
+
 	HTuple Hom2D;
 	bool RetList[] = { false,false,false,false,false,false,false,false,false,false,false,false,false };
 	switch (ImageType)
@@ -821,6 +825,9 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 		if (AdjustImage(m_ImageGen, &m_ImageGen, "./Para/" + ParaPath +"/", Hom2D) != SUCCESS)
 			return FAILED;
 		
+		this->m_ImageOutFore = m_ImageGen;
+		this->m_ImageOutBk = m_ImageGen;
+
 		if ((RetList[n] = (FindPair(m_ImageGen, ParaP1, &Line1, &Line2) == SUCCESS)) && draw_image)
 		{
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
@@ -861,7 +868,8 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 
 		if (AdjustImage(m_ImageGen,&m_ImageGen, "./Para/" + ParaPath+"/", Hom2D) != SUCCESS)
 			return FAILED;
-
+		this->m_ImageOutFore = m_ImageGen;
+		this->m_ImageOutBk = m_ImageGen;
 		int n = 0;
 		if ((RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS)) && draw_image)
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
@@ -895,9 +903,9 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 		*(Result + 5) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line1) : -1;
 		*(Result + 6) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line2) : -1;
 		*(Result + 7) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line3) : -1;
-		Num = 7;
+		Num = 8;
 		bool Ret = true;
-		for (int i = 0;i < 6;i++)
+		for (int i = 0;i < 7;i++)
 			Ret &= RetList[i];
 		return Ret ? SUCCESS : FAILED;
 	}
@@ -932,7 +940,8 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 		if (AdjustImage(m_ImageGen,&m_ImageGen, "./Para/" + ParaPath + "/", Hom2D) != SUCCESS)
 			return FAILED;
 
-
+		this->m_ImageOutFore = m_ImageGen;
+		this->m_ImageOutBk = m_ImageGen;
 		if ((RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS)) && draw_image)
 			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
 		if ((RetList[n + 1] = (FindPair(m_ImageGen, ParaP1, &Line2, &Line3) == SUCCESS)) && draw_image)
