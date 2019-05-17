@@ -12,10 +12,10 @@ int main()
 {
 	
 	int IndexBuff[] = { 1,2,3,8,9,10 };
-	for (int i = 1;i < 10;i++)
+	for (int i = 9;i < 10;i++)
 	{
 		cout << "#############################################################" << endl;
-		for (int j = 0;j < 6;j++)
+		for (int j = 3;j < 4;j++)
 		{
 			int Index = IndexBuff[j];
 			CVisionMetric2D Vision;
@@ -30,13 +30,13 @@ int main()
 			int x=Vision.Compute((CVisionMetric2D::EN_RobotPose)(Index - 1),pRes,Num,true);
 
 			memset(Buff, 0, 100);
-			sprintf_s(Buff, "C:\\jjj.jpg", Index);
+			sprintf_s(Buff, "%d.jpg", Index);
 			Vision.SaveImage(Buff);
 			//Sleep(200);
 			unsigned char* ImageBuff = (unsigned char*)malloc(2592 * 2048 * 3);
 			int ImageWidth=2592, ImageHeight=2048;
 			//Vision.GetImageData(ImageBuff, ImageWidth, ImageHeight);
-			cout << "-------Num=" << Num <<"--------" <<endl;
+			cout << "-------Num=" << Num <<"--------  X:"<<x <<endl;
 			for (int i = 0;i < Num;i++)
 				cout << pRes[i] << endl;
 		}

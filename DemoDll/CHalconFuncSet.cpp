@@ -818,7 +818,7 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 		if(ImageType== CHalconFuncSet::RP_POSE01)
 			ParaPath = "Pose1";
 		else
-			ParaPath = "Pose2";
+			ParaPath = "Pose10";
 		string ParaP1= "./Para/"+ ParaPath +"/P1/";
 		CLineModel Line1;
 		CLineModel Line2;
@@ -852,6 +852,8 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 		string ParaL2 = "./Para/" + ParaPath + "/L2/";
 		string ParaL3 = "./Para/" + ParaPath + "/L3/";
 		string ParaP1= "./Para/" + ParaPath + "/P1/";
+		string ParaP2 = "./Para/" + ParaPath + "/P2/";
+		string ParaP3 = "./Para/" + ParaPath + "/P3/";
 		string ParaSpoke1 = "./Para/" + ParaPath + "/C1/";
 		string ParaSpoke2 = "./Para/" + ParaPath + "/C2/";
 
@@ -862,6 +864,14 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 		//Pair
 		CLineModel Line4;
 		CLineModel Line5;
+
+		//Pair
+		CLineModel Line6;
+		CLineModel Line7;
+
+		//Pair
+		CLineModel Line8;
+		CLineModel Line9;
 
 		CCircleModel Circle1;
 		CCircleModel Circle2;
@@ -887,6 +897,28 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 		if ((RetList[n + 5] = (FindCircle(m_ImageGen, ParaSpoke2, &Circle2)==SUCCESS)) && draw_image)
 			PaintCircle(this->m_ImageOutFore, this->m_ImageOutBk, Circle2);
 		
+		if ((RetList[n + 6] = (FindPair(m_ImageGen, ParaP2, &Line6, &Line7) == SUCCESS)) && draw_image)
+		{
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line6);	
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line7);
+			PaintLine(this->m_ImageOutFore, Line7, 0);
+			PaintLine(this->m_ImageOutFore, Line6, 0);
+			PaintLine(this->m_ImageOutBk, Line7,255);
+			PaintLine(this->m_ImageOutBk, Line6,255);
+		}
+
+		if ((RetList[n + 7] = (FindPair(m_ImageGen, ParaP3, &Line8, &Line9) == SUCCESS)) && draw_image)
+		{
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line8);
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line9);
+			PaintLine(this->m_ImageOutFore, Line8, 0);
+			PaintLine(this->m_ImageOutFore, Line9, 0);
+			PaintLine(this->m_ImageOutBk, Line8, 255);
+			PaintLine(this->m_ImageOutBk, Line9, 255);
+		}
+
+
+
 		//方通宽度
 		*(Result ) = (RetList[n + 3] && RetList[n]) ? min(DistanceLineLine(Line1, Line4), DistanceLineLine(Line1, Line5)) : -1;
 		//缝隙宽度
@@ -903,9 +935,16 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 		*(Result + 5) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line1) : -1;
 		*(Result + 6) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line2) : -1;
 		*(Result + 7) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line3) : -1;
-		Num = 8;
+
+		//上下缝隙的宽度
+		*(Result + 8) = RetList[n + 6] ? DistanceLineLine(Line6, Line7) : -1;
+		*(Result + 9) = RetList[n + 7] ? DistanceLineLine(Line8, Line9) : -1;
+
+
+
+		Num = 10;
 		bool Ret = true;
-		for (int i = 0;i < 7;i++)
+		for (int i = 0;i < 8;i++)
 			Ret &= RetList[i];
 		return Ret ? SUCCESS : FAILED;
 	}
@@ -989,6 +1028,25 @@ void CHalconFuncSet::PaintCircle(HObject& ImageFore, HObject& ImageBk, CCircleMo
 
 	PaintRegion(RegionPoint, ImageBk, &this->m_ImageOutBk, 0, "fill");
 	PaintRegion(RegionCircle, ImageBk, &this->m_ImageOutBk, 0, "fill");
+}
+
+void CHalconFuncSet::PaintLine(HObject& Image, CLineModel Line, int GrayValue)
+{
+	HObject RegionLine1;
+	GenRegionLine(&RegionLine1, Line.StartPoint.Y, Line.StartPoint.X, Line.EndPoint.Y, Line.EndPoint.X);
+	PaintRegion(RegionLine1, Image, &Image, GrayValue%256, "fill");
+}
+void CHalconFuncSet::PaintCircle(HObject& Image, CCircleModel Circle, int GrayValue)
+{
+	HObject RegionCircle, RegionPoint, RegionCircleErosion;
+	GenRegionPoints(&RegionPoint, Circle.CenterPoint.Y, Circle.CenterPoint.X);
+	GenCircle(&RegionCircle, Circle.CenterPoint.Y, Circle.CenterPoint.X, Circle.Radius);
+	GenCircle(&RegionCircleErosion, Circle.CenterPoint.Y, Circle.CenterPoint.X, Circle.Radius - 2);
+	//ErosionCircle(RegionCircle, &RegionCircleErosion, 4);
+	Difference(RegionCircle, RegionCircleErosion, &RegionCircle);
+
+	PaintRegion(RegionPoint, Image, &Image, GrayValue%256, "fill");
+	PaintRegion(RegionCircle, Image, &Image, GrayValue%256, "fill");
 }
 
 double CHalconFuncSet::DistanceLineLine(CLineModel& Line1, CLineModel& Line2)

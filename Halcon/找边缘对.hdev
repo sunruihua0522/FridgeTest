@@ -5,8 +5,8 @@
 <body>
 <c></c>
 <l>for Index2 := 1 to 9 by 1</l>
-<l>Group:=1</l>
-<l>PoseIndex:=1</l>
+<l>Group:=9</l>
+<l>PoseIndex:=8</l>
 <l>read_image (Image11117455Cam0,  'C:/Users/cn11321/source/repos/TestDemo/Halcon/image/RawImage/'+Group+'/Robot_0'+PoseIndex+'.png')</l>
 <l>*mean_image(Image11117455Cam0, Image11117455Cam0, 3, 3)</l>
 <l>get_image_size(Image11117455Cam0, Width, Height)</l>
@@ -31,8 +31,9 @@
 <l>dev_open_window_fit_image(Image11117455Cam0, 0, 0, -1, -1, WindowHandle)</l>
 <l>dev_display(Image11117455Cam0)</l>
 <l>*stop()</l>
-<l>PreFile:='./Para/Pose'+PoseIndex+'/P1/'</l>
-<l>stop()</l>
+<l>PreFile:='./Para/Pose'+PoseIndex+'/P2/'</l>
+<c></c>
+<l>* stop()</l>
 <l>* draw_rectangle2(WindowHandle, Row, Column, Phi, Length1, Length2)</l>
 <l>*  RoiTuple:=[Row, Column, Phi, Length1, Length2,1,20,'negative_strongest','first']</l>
 <l>*  write_tuple(RoiTuple, PreFile+'Roi.tup')</l>
@@ -115,7 +116,7 @@
 <l>disp_line(WindowHandle, RowBegin, ColBegin, RowEnd, ColEnd)</l>
 <l>dev_set_color('green')</l>
 <l>disp_line(WindowHandle, RowBegin1, ColBegin1, RowEnd1, ColEnd1)</l>
-<l>disp_message(WindowHandle, 'Group'+Index2 +'___Robot_01.bmp', 'image', 738, 992, 'black', 'true')</l>
+<l>*disp_message(WindowHandle, 'Group'+Index2 +'___Robot_01.bmp', 'image', 738, 992, 'black', 'true')</l>
 <l>stop()</l>
 <l>endfor</l>
 </body>

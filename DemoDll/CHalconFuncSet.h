@@ -61,7 +61,8 @@ private:
 
 	void PaintLine(HObject& ImageFore, HObject& ImageBk, CLineModel Line);
 	void PaintCircle(HObject& ImageFore, HObject& ImageBk, CCircleModel Circle);
-
+	void PaintLine(HObject& ImageFore, CLineModel Line,int GrayValue);
+	void PaintCircle(HObject& ImageFore, CCircleModel Circle, int GrayValue);
 	double DistanceLineLine(CLineModel& Line1, CLineModel& Line2);
 	double DistanceCircleLine(CCircleModel& Circle, CLineModel& Line);
 
