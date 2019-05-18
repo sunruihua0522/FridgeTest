@@ -7,12 +7,16 @@
 #include <Windows.h>
 #include <iostream>
 using namespace std;
-#pragma comment(lib,"DemoDll.lib")
+#ifdef _DEBUG
+#pragma comment(lib,"..\\x64\\Debug\\DemoDll_D.lib")
+#else
+#pragma comment(lib,"..\\x64\\Release\\DemoDll.lib")
+#endif
 int main()
 {
 	
 	int IndexBuff[] = { 1,2,3,8,9,10 };
-	for (int i = 2;i < 3;i++)
+	for (int i = 1;i < 9;i++)
 	{
 		cout << "#############################################################" << endl;
 		for (int j = 0;j < 6;j++)
@@ -27,7 +31,7 @@ int main()
 			Vision.SetImageFile(Buff);		
 			int Num = 0;
 			int nRet = 0;
-			double pRes[20];
+		
 			switch (j)
 			{
 			case 0:
@@ -80,10 +84,8 @@ int main()
 			//Sleep(200);
 			unsigned char* ImageBuff = (unsigned char*)malloc(2592 * 2048 * 3);
 			int ImageWidth=2592, ImageHeight=2048;
-			//Vision.GetImageData(ImageBuff, ImageWidth, ImageHeight);
-			cout << "-------Num=" << Num <<"--------  X:"<<nRet <<endl;
-			for (int i = 0;i < Num;i++)
-				cout << pRes[i] << endl;
+			cout << "--------  X:"<<nRet <<endl;
+		
 		}
 	}
 }

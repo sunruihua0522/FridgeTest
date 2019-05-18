@@ -50,7 +50,7 @@ namespace Hua
 		HOLEINFO() :Radius(-1) {}
 		HOLEINFO(POINT2D pt, double R) { CenterPt = pt; Radius = R; }
 
-	}* LPCIRCLE;
+	}* LPHOLEINFO;
 
 	
 }

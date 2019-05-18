@@ -228,7 +228,7 @@ int CVisionMetric2D::Compute8(GAP2D& gap_side, GAP2D& gap_up, GAP2D& gap_down, H
 		return EC_FAILED;
 	}
 }
-int CVisionMetric2D::Compute9(GAP2D& gap_Width, GAP2D gap_Narrow, bool draw_image)
+int CVisionMetric2D::Compute9(GAP2D& gap_Width, GAP2D& gap_Narrow, bool draw_image)
 {
 	try
 	{

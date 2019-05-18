@@ -54,7 +54,7 @@ public:
 	int Compute2(GAP2D& gap_Width, GAP2D& gap_Narrow, bool draw_image = false);
 	int Compute3(GAP2D& gap_side, GAP2D& gap_up, GAP2D& gap_down, HOLEINFO& hole1, HOLEINFO& hole2, bool draw_image = false);
 	int Compute8(GAP2D& gap_side, GAP2D& gap_up, GAP2D& gap_down, HOLEINFO& hole1, HOLEINFO& hole2, bool draw_image = false);
-	int Compute9(GAP2D& gap_Width, GAP2D gap_Narrow, bool draw_image = false);
+	int Compute9(GAP2D& gap_Width, GAP2D& gap_Narrow, bool draw_image = false);
 	int Compute10(GAP2D& gap, bool draw_image = false);
 private:
 	void*  m_pWapper;
