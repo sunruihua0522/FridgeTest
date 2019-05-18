@@ -33,6 +33,12 @@
     <ClInclude Include="CLineModel.h">
       <Filter>Model</Filter>
     </ClInclude>
+    <ClInclude Include="CPairModel.h">
+      <Filter>Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Hua.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CHalconFuncSet.cpp">
@@ -48,6 +54,9 @@
       <Filter>Model</Filter>
     </ClCompile>
     <ClCompile Include="CLineModel.cpp">
+      <Filter>Model</Filter>
+    </ClCompile>
+    <ClCompile Include="CPairModel.cpp">
       <Filter>Model</Filter>
     </ClCompile>
   </ItemGroup>

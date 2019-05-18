@@ -4,7 +4,8 @@
 #include "CCircleModel.h"
 #include "CLineModel.h"
 #include "CPointModel.h"
-
+#include "CPairModel.h"
+#include "Hua.h"
 using namespace std;
 using namespace HalconCpp;
 
@@ -17,7 +18,7 @@ public:
 	~CHalconFuncSet();
 	void SetWindowHandle(HTuple WindowHandle);
 	int FindLine(HObject Image, string Para, CLineModel* pLine);
-	int FindPair(HObject Image, string Para, CLineModel* pStartLine, CLineModel* pEndLine);
+	int FindPair(HObject Image, string Para, CPairModel* Pair);
 	int FindCircle(HObject Image, string Para, CCircleModel* pCircle);
 	enum EnumPicType
 	{
@@ -43,7 +44,19 @@ public:
 		PARA_INVALID,
 		FAILED,
 	};
-	int ProcessImage(EnumPicType ImageType, double* Result,int& Num, bool draw_image);
+	//int ProcessImage(EnumPicType ImageType, double* Result,int& Num, bool draw_image);
+
+	int ProcessImage1(EnumPicType ImageType,CPairModel& Pair, double* Result, int& Num,bool draw_image);
+	int ProcessImage2(EnumPicType ImageType,CLineModel& Line, CPairModel& Pair, double* Result, int& Num, bool draw_image);
+	int ProcessImage3(EnumPicType ImageType,CLineModel& LineSide, CLineModel& LineUp, CLineModel& LineDown, CCircleModel& CircleLeft, CCircleModel& CircleRight, CPairModel& PairSide, CPairModel& PairUp, CPairModel& PairDown, double* Result, int& Num, bool draw_image);
+
+
+
+	double DistanceLineLine(CLineModel& Line1, CLineModel& Line2);
+	double DistanceCircleLine(CCircleModel& Circle, CLineModel& Line);
+	double AngleLineLine(CLineModel& Line1, CLineModel& Line2);
+	
+
 	void GenImage(unsigned char* data, int width, int height);
 	void GenImage(char* FilePath);
 	void SaveImage(const char* FilePath);
@@ -63,8 +76,7 @@ private:
 	void PaintCircle(HObject& ImageFore, HObject& ImageBk, CCircleModel Circle);
 	void PaintLine(HObject& ImageFore, CLineModel Line,int GrayValue);
 	void PaintCircle(HObject& ImageFore, CCircleModel Circle, int GrayValue);
-	double DistanceLineLine(CLineModel& Line1, CLineModel& Line2);
-	double DistanceCircleLine(CCircleModel& Circle, CLineModel& Line);
+	
 
 	HObject m_ImageGen,m_ImageOutFore,m_ImageOutBk;
 	CRITICAL_SECTION CS;

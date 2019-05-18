@@ -1,9 +1,11 @@
-﻿#ifdef MY_DLL_EXPORTS
+﻿#pragma once
+#include "Hua.h"
+#ifdef MY_DLL_EXPORTS
 #   define ML_DLL_EXP __declspec(dllexport)
 #else
 #   define ML_DLL_EXP __declspec(dllimport)
 #endif
-
+using namespace Hua;
 class ML_DLL_EXP CVisionMetric2D
 {
 public:
@@ -40,7 +42,7 @@ public:
 	};
 
 
-	int Compute(EN_RobotPose robot_pose, double *param_list, int& num_param, bool draw_image=false);
+	//int Compute(EN_RobotPose robot_pose, double *param_list, int& num_param, bool draw_image=false);
 	
 	//! 输出图像文件
 	void SaveImage(const char* file_path_name);
@@ -48,7 +50,14 @@ public:
 	//! 输出图像数据
 	bool GetImageData( unsigned char* rgb_data, int width ,int height);
 
+	int Compute1(GAP2D& gap, bool draw_image = false);
+	int Compute2(GAP2D& gap_Width, GAP2D& gap_Narrow, bool draw_image = false);
+	int Compute3(GAP2D& gap_side, GAP2D& gap_up, GAP2D& gap_down, HOLEINFO& hole1, HOLEINFO& hole2, bool draw_image = false);
+	int Compute8(GAP2D& gap_side, GAP2D& gap_up, GAP2D& gap_down, HOLEINFO& hole1, HOLEINFO& hole2, bool draw_image = false);
+	int Compute9(GAP2D& gap_Width, GAP2D gap_Narrow, bool draw_image = false);
+	int Compute10(GAP2D& gap, bool draw_image = false);
 private:
 	void*  m_pWapper;
+	double m_DoubleBuff[20];
 };
 

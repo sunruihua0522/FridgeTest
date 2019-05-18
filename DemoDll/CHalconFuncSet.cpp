@@ -4,7 +4,7 @@
 //#define LOG
 CHalconFuncSet::CHalconFuncSet()
 {
-	
+
 }
 
 CHalconFuncSet::~CHalconFuncSet()
@@ -59,7 +59,7 @@ int CHalconFuncSet::FindLine(HObject Image, string Para, CLineModel* pLine)
 
 	MeanImage(Image, &ImageMean, 3, 3);
 	GetImageSize(ImageMean, &hv_Width, &hv_Height);
-	
+
 	ReadTuple((Para + "Roi.tup").c_str(), &hv_RoiTuple);
 
 
@@ -145,7 +145,7 @@ int CHalconFuncSet::FindLine(HObject Image, string Para, CLineModel* pLine)
 	}
 	return NOT_ENOUGH_TUPLE;
 }
-int CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine, CLineModel* pEndLine)
+int CHalconFuncSet::FindPair(HObject Image, string Para, CPairModel* Pair)
 {
 	// Local iconic variables
 	HObject  ho_Rectangle, ho_Contour;
@@ -166,7 +166,7 @@ int CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine,
 	HTuple  hv_ColBegin1, hv_RowEnd1, hv_ColEnd1, hv_Nr1, hv_Nc1;
 	HTuple  hv_Dist1;
 
-	if (_access((Para + "Roi.tup").c_str(), 0) != 0 )
+	if (_access((Para + "Roi.tup").c_str(), 0) != 0)
 		return FILE_IS_NOT_FOUND;
 
 	GetImageSize(Image, &hv_Width, &hv_Height);
@@ -214,19 +214,19 @@ int CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine,
 	hv_RowSecondList = HTuple();
 	hv_ColSecondList = HTuple();
 
-	
+
 	HTuple end_val41 = hv_CaliperNum;
 	HTuple step_val41 = 1;
 	for (hv_Index = 1; hv_Index.Continue(end_val41, step_val41); hv_Index += step_val41)
 	{
 		GenMeasureRectangle2(hv_newRow, hv_newCol, hv_Phi, hv_NewL1, hv_NewL2, hv_Width,
 			hv_Height, "nearest_neighbor", &hv_MeasureHandle);
-	
+
 		//positive找白边，negative找黑边
 		MeasurePairs(Image, hv_MeasureHandle, hv_RoiTuple[5], hv_RoiTuple[6], hv_RoiTuple[7],
 			hv_RoiTuple[8], &hv_RowEdgeFirst, &hv_ColumnEdgeFirst, &hv_AmplitudeFirst, &hv_RowEdgeSecond,
 			&hv_ColumnEdgeSecond, &hv_AmplitudeSecond, &hv_IntraDistance, &hv_InterDistance);
-		
+
 		hv_newRow = hv_BaseRow - (((hv_NewL2*hv_Cos)*hv_Index) * 2);
 		hv_newCol = hv_BaseCol - (((hv_NewL2*hv_Sin)*hv_Index) * 2);
 
@@ -239,37 +239,31 @@ int CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine,
 			hv_ColFirstList = hv_ColFirstList.TupleConcat(hv_ColumnEdgeFirst);
 			hv_RowSecondList = hv_RowSecondList.TupleConcat(hv_RowEdgeSecond);
 			hv_ColSecondList = hv_ColSecondList.TupleConcat(hv_ColumnEdgeSecond);
-
-			double x = hv_RowEdgeFirst.D();
-			double xX = hv_ColumnEdgeFirst.D();
-			double xXX = hv_RowEdgeSecond.D();
-			double xXXX = hv_ColumnEdgeSecond.D();
-			x= xX= xXX= xXXX=0;
 		}
 		CloseMeasure(hv_MeasureHandle);
 	}
-	
+
 
 	if (0 != ((hv_RowFirstList.TupleLength()) > 2))
 	{
-		
+
 		GenContourPolygonXld(&ho_Contour, hv_RowFirstList, hv_ColFirstList);
 		FitLineContourXld(ho_Contour, "gauss", -1, 0, 5, 2, &hv_RowBegin, &hv_ColBegin,
 			&hv_RowEnd, &hv_ColEnd, &hv_Nr, &hv_Nc, &hv_Dist);
-		pStartLine->StartPoint.X = hv_ColBegin.D();
-		pStartLine->StartPoint.Y = hv_RowBegin.D();
-		pStartLine->EndPoint.X = hv_ColEnd.D();
-		pStartLine->EndPoint.Y = hv_RowEnd.D();
+		Pair->Line1.StartPoint.X = hv_ColBegin.D();
+		Pair->Line1.StartPoint.Y = hv_RowBegin.D();
+		Pair->Line1.EndPoint.X = hv_ColEnd.D();
+		Pair->Line1.EndPoint.Y = hv_RowEnd.D();
 
 		GenContourPolygonXld(&ho_Contour1, hv_RowSecondList, hv_ColSecondList);
-		
+
 		FitLineContourXld(ho_Contour1, "gauss", -1, 0, 5, 2, &hv_RowBegin1, &hv_ColBegin1,
 			&hv_RowEnd1, &hv_ColEnd1, &hv_Nr1, &hv_Nc1, &hv_Dist1);
-		
-		pEndLine->StartPoint.X = hv_ColBegin1.D();
-		pEndLine->StartPoint.Y = hv_RowBegin1.D();
-		pEndLine->EndPoint.X = hv_ColEnd1.D();
-		pEndLine->EndPoint.Y = hv_RowEnd1.D();
+
+		Pair->Line2.StartPoint.X = hv_ColBegin1.D();
+		Pair->Line2.StartPoint.Y = hv_RowBegin1.D();
+		Pair->Line2.EndPoint.X = hv_ColEnd1.D();
+		Pair->Line2.EndPoint.Y = hv_RowEnd1.D();
 		return SUCCESS;
 	}
 	return NOT_ENOUGH_TUPLE;
@@ -278,7 +272,7 @@ int CHalconFuncSet::FindPair(HObject Image, string Para, CLineModel* pStartLine,
 int CHalconFuncSet::FindCircle(HObject Image, string Para, CCircleModel* pCircle)
 {
 	// Local iconic variables
-	HObject ho_ImageReduced,  ho_Rectangle, ho_Regions, ho_ConnectedRegions;
+	HObject ho_ImageReduced, ho_Rectangle, ho_Regions, ho_ConnectedRegions;
 	HObject  ho_SelectedRegions, ho_Regions1, ho_Contour, ho_Circle;
 
 	// Local control variables
@@ -318,7 +312,7 @@ int CHalconFuncSet::FindCircle(HObject Image, string Para, CCircleModel* pCircle
 	//AffineTransImage(Image, &Image, hv_HomMat2D, "constant", "false");
 
 
-		
+
 	GenRectangle2(&ho_Rectangle, HTuple(hv_RectRoiSearch[0]), HTuple(hv_RectRoiSearch[1]),
 		HTuple(hv_RectRoiSearch[2]), HTuple(hv_RectRoiSearch[3]), HTuple(hv_RectRoiSearch[4]));
 	ReduceDomain(Image, ho_Rectangle, &ho_ImageReduced);
@@ -337,7 +331,7 @@ int CHalconFuncSet::FindCircle(HObject Image, string Para, CCircleModel* pCircle
 		return PARA_INVALID;
 
 	Threshold(ho_ImageReduced, &ho_Regions, HTuple(hv_Indices[hv_IndexSelect]) + 30, 255);
-	if(ho_Regions.CountObj()==0)
+	if (ho_Regions.CountObj() == 0)
 		return PARA_INVALID;
 	Connection(ho_Regions, &ho_ConnectedRegions);
 	DilationCircle(ho_ConnectedRegions, &ho_ConnectedRegions, 20);
@@ -350,7 +344,7 @@ int CHalconFuncSet::FindCircle(HObject Image, string Para, CCircleModel* pCircle
 	if (ho_SelectedRegions.CountObj() != 2)
 		return PARA_INVALID;
 
-	int nCircleIndex = Para.find("C1")!=-1? 1:2;
+	int nCircleIndex = Para.find("C1") != -1 ? 1 : 2;
 	if (0 != (nCircleIndex == 1))
 	{
 		hv_SelectIndex = 0;
@@ -775,14 +769,14 @@ void CHalconFuncSet::SaveImage(const char* FilePath)
 		WriteImage(Image, "jpg", 0, FilePath);
 		//Image.WriteObject(FilePath);
 	}
-	
+
 	//Sleep(500);
 	//LeaveCriticalSection(&CS);
 }
 
 void CHalconFuncSet::GetImageData(unsigned char* rgb_data, int width, int height)
 {
-	HTuple PtRed, PtGreen, PtBlue, ImageWidth, ImageHeight,ImageType;
+	HTuple PtRed, PtGreen, PtBlue, ImageWidth, ImageHeight, ImageType;
 	HObject Image;
 	if (this->m_ImageOutFore.IsInitialized() && this->m_ImageOutBk.IsInitialized())
 	{
@@ -795,15 +789,217 @@ void CHalconFuncSet::GetImageData(unsigned char* rgb_data, int width, int height
 		BYTE *pB = (BYTE *)PtBlue[0].L();
 
 		memcpy(rgb_data, pR, width*height);
-		memcpy(rgb_data+ width * height, pG, width*height);
-		memcpy(rgb_data+ 2*width*height, pB, width*height);
+		memcpy(rgb_data + width * height, pG, width*height);
+		memcpy(rgb_data + 2 * width*height, pB, width*height);
 	}
-	
+
 }
 
 
 
-int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num, bool draw_image)
+//int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num, bool draw_image)
+//{
+//	int n = 0;
+//
+//	HTuple Hom2D;
+//	bool RetList[] = { false,false,false,false,false,false,false,false,false,false,false,false,false };
+//	switch (ImageType)
+//	{
+//	case CHalconFuncSet::RP_POSE01:
+//	case CHalconFuncSet::RP_POSE10:
+//	{
+//		string ParaPath = "";
+//		if (ImageType == CHalconFuncSet::RP_POSE01)
+//			ParaPath = "Pose1";
+//		else
+//			ParaPath = "Pose10";
+//		string ParaP1 = "./Para/" + ParaPath + "/P1/";
+//		CLineModel Line1;
+//		CLineModel Line2;
+//		if (AdjustImage(m_ImageGen, &m_ImageGen, "./Para/" + ParaPath + "/", Hom2D) != SUCCESS)
+//			return FAILED;
+//
+//		this->m_ImageOutFore = m_ImageGen;
+//		this->m_ImageOutBk = m_ImageGen;
+//
+//		if ((RetList[n] = (FindPair(m_ImageGen, ParaP1, &Line1, &Line2) == SUCCESS)) && draw_image)
+//		{
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
+//		}
+//		double d = RetList[n] ? DistanceLineLine(Line1, Line2) : -1;
+//		*(Result + n++) = d;
+//		Num = 1;
+//		return RetList[0] ? SUCCESS : FAILED;
+//	}
+//	break;
+//	case CHalconFuncSet::RP_POSE03:
+//	case CHalconFuncSet::RP_POSE08:
+//	{
+//		string ParaPath = "";
+//		if (ImageType == CHalconFuncSet::RP_POSE03)
+//			ParaPath = "Pose3";
+//		else
+//			ParaPath = "Pose8";
+//
+//		string ParaL1 = "./Para/" + ParaPath + "/L1/";
+//		string ParaL2 = "./Para/" + ParaPath + "/L2/";
+//		string ParaL3 = "./Para/" + ParaPath + "/L3/";
+//		string ParaP1 = "./Para/" + ParaPath + "/P1/";
+//		string ParaP2 = "./Para/" + ParaPath + "/P2/";
+//		string ParaP3 = "./Para/" + ParaPath + "/P3/";
+//		string ParaSpoke1 = "./Para/" + ParaPath + "/C1/";
+//		string ParaSpoke2 = "./Para/" + ParaPath + "/C2/";
+//
+//		CLineModel Line1;
+//		CLineModel Line2;
+//		CLineModel Line3;
+//
+//		//Pair
+//		CLineModel Line4;
+//		CLineModel Line5;
+//
+//		//Pair
+//		CLineModel Line6;
+//		CLineModel Line7;
+//
+//		//Pair
+//		CLineModel Line8;
+//		CLineModel Line9;
+//
+//		CCircleModel Circle1;
+//		CCircleModel Circle2;
+//
+//		if (AdjustImage(m_ImageGen, &m_ImageGen, "./Para/" + ParaPath + "/", Hom2D) != SUCCESS)
+//			return FAILED;
+//		this->m_ImageOutFore = m_ImageGen;
+//		this->m_ImageOutBk = m_ImageGen;
+//		int n = 0;
+//		if ((RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS)) && draw_image)
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
+//		if ((RetList[n + 1] = (FindLine(m_ImageGen, ParaL2, &Line2) == SUCCESS)) && draw_image)
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
+//		if ((RetList[n + 2] = (FindLine(m_ImageGen, ParaL3, &Line3) == SUCCESS)) && draw_image)
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line3);
+//		if ((RetList[n + 3] = (FindPair(m_ImageGen, ParaP1, &Line4, &Line5) == SUCCESS)) && draw_image)
+//		{
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line4);
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line5);
+//		}
+//		if ((RetList[n + 4] = (FindCircle(m_ImageGen, ParaSpoke1, &Circle1) == SUCCESS)) && draw_image)
+//			PaintCircle(this->m_ImageOutFore, this->m_ImageOutBk, Circle1);
+//		if ((RetList[n + 5] = (FindCircle(m_ImageGen, ParaSpoke2, &Circle2) == SUCCESS)) && draw_image)
+//			PaintCircle(this->m_ImageOutFore, this->m_ImageOutBk, Circle2);
+//
+//		if ((RetList[n + 6] = (FindPair(m_ImageGen, ParaP2, &Line6, &Line7) == SUCCESS)) && draw_image)
+//		{
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line6);
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line7);
+//			PaintLine(this->m_ImageOutFore, Line7, 0);
+//			PaintLine(this->m_ImageOutFore, Line6, 0);
+//			PaintLine(this->m_ImageOutBk, Line7, 255);
+//			PaintLine(this->m_ImageOutBk, Line6, 255);
+//		}
+//
+//		if ((RetList[n + 7] = (FindPair(m_ImageGen, ParaP3, &Line8, &Line9) == SUCCESS)) && draw_image)
+//		{
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line8);
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line9);
+//			PaintLine(this->m_ImageOutFore, Line8, 0);
+//			PaintLine(this->m_ImageOutFore, Line9, 0);
+//			PaintLine(this->m_ImageOutBk, Line8, 255);
+//			PaintLine(this->m_ImageOutBk, Line9, 255);
+//		}
+//
+//
+//
+//		//方通宽度
+//		*(Result) = (RetList[n + 3] && RetList[n]) ? min(DistanceLineLine(Line1, Line4), DistanceLineLine(Line1, Line5)) : -1;
+//		//缝隙宽度
+//		*(Result + 1) = RetList[n + 3] ? DistanceLineLine(Line4, Line5) : -1;
+//		//圆到三边的宽度
+//
+//		//n+4
+//		*(Result + 2) = RetList[n + 4] ? DistanceCircleLine(Circle1, Line1) : -1;
+//		*(Result + 3) = RetList[n + 4] ? DistanceCircleLine(Circle1, Line2) : -1;
+//		*(Result + 4) = RetList[n + 4] ? DistanceCircleLine(Circle1, Line3) : -1;
+//
+//
+//		//RetList[n + 5]
+//		*(Result + 5) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line1) : -1;
+//		*(Result + 6) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line2) : -1;
+//		*(Result + 7) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line3) : -1;
+//
+//		//上下缝隙的宽度
+//		*(Result + 8) = RetList[n + 6] ? DistanceLineLine(Line6, Line7) : -1;
+//		*(Result + 9) = RetList[n + 7] ? DistanceLineLine(Line8, Line9) : -1;
+//
+//
+//
+//		Num = 10;
+//		bool Ret = true;
+//		for (int i = 0;i < 8;i++)
+//			Ret &= RetList[i];
+//		return Ret ? SUCCESS : FAILED;
+//	}
+//	break;
+//	case CHalconFuncSet::RP_POSE02:
+//	case CHalconFuncSet::RP_POSE09:
+//	case CHalconFuncSet::RP_POSE04:
+//	case CHalconFuncSet::RP_POSE07:
+//	case CHalconFuncSet::RP_POSE05:
+//	case CHalconFuncSet::RP_POSE06:
+//	{
+//		string ParaPath = "";
+//		if (ImageType == CHalconFuncSet::RP_POSE04)
+//			ParaPath = "Pose4";
+//		else if (ImageType == CHalconFuncSet::RP_POSE05)
+//			ParaPath = "Pose5";
+//		else if (ImageType == CHalconFuncSet::RP_POSE06)
+//			ParaPath = "Pose6";
+//		else if (ImageType == CHalconFuncSet::RP_POSE02)
+//			ParaPath = "Pose2";
+//		else if (ImageType == CHalconFuncSet::RP_POSE07)
+//			ParaPath = "Pose7";
+//		else
+//			ParaPath = "Pose9";
+//		string ParaL1 = "./Para/" + ParaPath + "/L1/";
+//		string ParaP1 = "./Para/" + ParaPath + "/P1/";
+//
+//		CLineModel Line1;
+//		CLineModel Line2;
+//		CLineModel Line3;
+//
+//		if (AdjustImage(m_ImageGen, &m_ImageGen, "./Para/" + ParaPath + "/", Hom2D) != SUCCESS)
+//			return FAILED;
+//
+//		this->m_ImageOutFore = m_ImageGen;
+//		this->m_ImageOutBk = m_ImageGen;
+//		if ((RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS)) && draw_image)
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
+//		if ((RetList[n + 1] = (FindPair(m_ImageGen, ParaP1, &Line2, &Line3) == SUCCESS)) && draw_image)
+//		{
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
+//			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line3);
+//		}
+//
+//		*(Result) = RetList[0] ? min(DistanceLineLine(Line1, Line2), DistanceLineLine(Line1, Line3)) : -1;
+//		*(Result + 1) = RetList[1] ? DistanceLineLine(Line2, Line3) : -1;
+//		Num = 2;
+//		bool Ret = true;
+//		for (int i = 0;i < 2;i++)
+//			Ret &= RetList[i];
+//		return Ret ? SUCCESS : FAILED;
+//	}
+//	break;
+//
+//	default:
+//		break;
+//	}
+//	return FAILED;
+//}
+
+int CHalconFuncSet::ProcessImage1(EnumPicType ImageType, CPairModel& Pair, double* Result, int& Num, bool draw_image)
 {
 	int n = 0;
 
@@ -815,140 +1011,42 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 	case CHalconFuncSet::RP_POSE10:
 	{
 		string ParaPath = "";
-		if(ImageType== CHalconFuncSet::RP_POSE01)
+		if (ImageType == CHalconFuncSet::RP_POSE01)
 			ParaPath = "Pose1";
 		else
 			ParaPath = "Pose10";
-		string ParaP1= "./Para/"+ ParaPath +"/P1/";
-		CLineModel Line1;
-		CLineModel Line2;
-		if (AdjustImage(m_ImageGen, &m_ImageGen, "./Para/" + ParaPath +"/", Hom2D) != SUCCESS)
+		string ParaP1 = "./Para/" + ParaPath + "/P1/";
+
+		if (AdjustImage(m_ImageGen, &m_ImageGen, "./Para/" + ParaPath + "/", Hom2D) != SUCCESS)
 			return FAILED;
-		
+
 		this->m_ImageOutFore = m_ImageGen;
 		this->m_ImageOutBk = m_ImageGen;
 
-		if ((RetList[n] = (FindPair(m_ImageGen, ParaP1, &Line1, &Line2) == SUCCESS)) && draw_image)
+		if ((RetList[0] = (FindPair(m_ImageGen, ParaP1, &Pair) == SUCCESS)) && draw_image)
 		{
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Pair.Line1);
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Pair.Line2);
 		}
-		double d = RetList[n] ? DistanceLineLine(Line1, Line2) : -1;
-		*(Result + n++)=d;
-		Num = 1;
+
+		*(Result) = RetList[0] ? DistanceLineLine(Pair.Line1, Pair.Line2) : -1;
+		*(Result+1) = RetList[0] ? AngleLineLine(Pair.Line1, Pair.Line2) : -1;
+
+
+		Num = 2;
 		return RetList[0] ? SUCCESS : FAILED;
 	}
 	break;
-	case CHalconFuncSet::RP_POSE03:
-	case CHalconFuncSet::RP_POSE08:
-	{
-		string ParaPath = "";
-		if (ImageType == CHalconFuncSet::RP_POSE03)
-			ParaPath = "Pose3";
-		else
-			ParaPath = "Pose8";
-
-		string ParaL1 = "./Para/"+ParaPath+"/L1/";
-		string ParaL2 = "./Para/" + ParaPath + "/L2/";
-		string ParaL3 = "./Para/" + ParaPath + "/L3/";
-		string ParaP1= "./Para/" + ParaPath + "/P1/";
-		string ParaP2 = "./Para/" + ParaPath + "/P2/";
-		string ParaP3 = "./Para/" + ParaPath + "/P3/";
-		string ParaSpoke1 = "./Para/" + ParaPath + "/C1/";
-		string ParaSpoke2 = "./Para/" + ParaPath + "/C2/";
-
-		CLineModel Line1;
-		CLineModel Line2;
-		CLineModel Line3;
-
-		//Pair
-		CLineModel Line4;
-		CLineModel Line5;
-
-		//Pair
-		CLineModel Line6;
-		CLineModel Line7;
-
-		//Pair
-		CLineModel Line8;
-		CLineModel Line9;
-
-		CCircleModel Circle1;
-		CCircleModel Circle2;
-
-		if (AdjustImage(m_ImageGen,&m_ImageGen, "./Para/" + ParaPath+"/", Hom2D) != SUCCESS)
-			return FAILED;
-		this->m_ImageOutFore = m_ImageGen;
-		this->m_ImageOutBk = m_ImageGen;
-		int n = 0;
-		if ((RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS)) && draw_image)
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
-		if ((RetList[n+1] =(FindLine(m_ImageGen, ParaL2, &Line2) == SUCCESS)) && draw_image)
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
-		if ((RetList[n + 2] = (FindLine(m_ImageGen, ParaL3, &Line3) == SUCCESS)) && draw_image)
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line3);
-		if ((RetList[n + 3] = (FindPair(m_ImageGen, ParaP1, &Line4, &Line5) == SUCCESS)) && draw_image)
-		{
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line4);
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line5);
-		}
-		if ((RetList[n + 4] = (FindCircle(m_ImageGen, ParaSpoke1, &Circle1) == SUCCESS)) && draw_image)
-			PaintCircle(this->m_ImageOutFore, this->m_ImageOutBk, Circle1);
-		if ((RetList[n + 5] = (FindCircle(m_ImageGen, ParaSpoke2, &Circle2)==SUCCESS)) && draw_image)
-			PaintCircle(this->m_ImageOutFore, this->m_ImageOutBk, Circle2);
-		
-		if ((RetList[n + 6] = (FindPair(m_ImageGen, ParaP2, &Line6, &Line7) == SUCCESS)) && draw_image)
-		{
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line6);	
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line7);
-			PaintLine(this->m_ImageOutFore, Line7, 0);
-			PaintLine(this->m_ImageOutFore, Line6, 0);
-			PaintLine(this->m_ImageOutBk, Line7,255);
-			PaintLine(this->m_ImageOutBk, Line6,255);
-		}
-
-		if ((RetList[n + 7] = (FindPair(m_ImageGen, ParaP3, &Line8, &Line9) == SUCCESS)) && draw_image)
-		{
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line8);
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line9);
-			PaintLine(this->m_ImageOutFore, Line8, 0);
-			PaintLine(this->m_ImageOutFore, Line9, 0);
-			PaintLine(this->m_ImageOutBk, Line8, 255);
-			PaintLine(this->m_ImageOutBk, Line9, 255);
-		}
-
-
-
-		//方通宽度
-		*(Result ) = (RetList[n + 3] && RetList[n]) ? min(DistanceLineLine(Line1, Line4), DistanceLineLine(Line1, Line5)) : -1;
-		//缝隙宽度
-		*(Result +1) = RetList[n + 3] ? DistanceLineLine(Line4, Line5) : -1;
-		//圆到三边的宽度
-	
-		//n+4
-		*(Result + 2) = RetList[n + 4] ? DistanceCircleLine(Circle1, Line1) : -1;
-		*(Result + 3) = RetList[n + 4] ? DistanceCircleLine(Circle1, Line2) : -1;
-		*(Result + 4) = RetList[n + 4] ? DistanceCircleLine(Circle1, Line3) : -1;
-		
-	
-		//RetList[n + 5]
-		*(Result + 5) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line1) : -1;
-		*(Result + 6) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line2) : -1;
-		*(Result + 7) = RetList[n + 5] ? DistanceCircleLine(Circle2, Line3) : -1;
-
-		//上下缝隙的宽度
-		*(Result + 8) = RetList[n + 6] ? DistanceLineLine(Line6, Line7) : -1;
-		*(Result + 9) = RetList[n + 7] ? DistanceLineLine(Line8, Line9) : -1;
-
-
-
-		Num = 10;
-		bool Ret = true;
-		for (int i = 0;i < 8;i++)
-			Ret &= RetList[i];
-		return Ret ? SUCCESS : FAILED;
 	}
-	break;
+}
+int CHalconFuncSet::ProcessImage2(EnumPicType ImageType, CLineModel& Line, CPairModel& Pair, double* Result, int& Num, bool draw_image)
+{
+	int n = 0;
+
+	HTuple Hom2D;
+	bool RetList[] = { false,false,false,false,false,false,false,false,false,false,false,false,false };
+	switch (ImageType)
+	{
 	case CHalconFuncSet::RP_POSE02:
 	case CHalconFuncSet::RP_POSE09:
 	case CHalconFuncSet::RP_POSE04:
@@ -963,47 +1061,189 @@ int CHalconFuncSet::ProcessImage(EnumPicType ImageType, double* Result, int& Num
 			ParaPath = "Pose5";
 		else if (ImageType == CHalconFuncSet::RP_POSE06)
 			ParaPath = "Pose6";
-		else if(ImageType == CHalconFuncSet::RP_POSE02)
+		else if (ImageType == CHalconFuncSet::RP_POSE02)
 			ParaPath = "Pose2";
 		else if (ImageType == CHalconFuncSet::RP_POSE07)
 			ParaPath = "Pose7";
 		else
 			ParaPath = "Pose9";
 		string ParaL1 = "./Para/" + ParaPath + "/L1/";
-		string ParaP1 = "./Para/" + ParaPath +"/P1/";
+		string ParaP1 = "./Para/" + ParaPath + "/P1/";
 
-		CLineModel Line1;
-		CLineModel Line2;
-		CLineModel Line3;
-
-		if (AdjustImage(m_ImageGen,&m_ImageGen, "./Para/" + ParaPath + "/", Hom2D) != SUCCESS)
+		if (AdjustImage(m_ImageGen, &m_ImageGen, "./Para/" + ParaPath + "/", Hom2D) != SUCCESS)
 			return FAILED;
 
 		this->m_ImageOutFore = m_ImageGen;
 		this->m_ImageOutBk = m_ImageGen;
-		if ((RetList[n] = (FindLine(m_ImageGen, ParaL1, &Line1) == SUCCESS)) && draw_image)
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line1);
-		if ((RetList[n + 1] = (FindPair(m_ImageGen, ParaP1, &Line2, &Line3) == SUCCESS)) && draw_image)
+		if ((RetList[0] = (FindLine(m_ImageGen, ParaL1, &Line) == SUCCESS)) && draw_image)
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line);
+		if ((RetList[1] = (FindPair(m_ImageGen, ParaP1, &Pair) == SUCCESS)) && draw_image)
 		{
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line2);
-			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Line3);
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Pair.Line1);
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, Pair.Line2);
 		}
+		//方通宽度
+		double D1 = DistanceLineLine(Line, Pair.Line1);
+		double D2 = DistanceLineLine(Line, Pair.Line2);
+		*(Result) = RetList[0] ? min(D1, D2) : -1;
 
-		*(Result) =RetList[0] ? min(DistanceLineLine(Line1, Line2), DistanceLineLine(Line1, Line3)) : -1;
-		*(Result+1) = RetList[1] ? DistanceLineLine(Line2, Line3) : -1;
-		Num = 2;
+		//方通夹角
+		double A1 = (RetList[1] && RetList[0]) ? AngleLineLine(Line, Pair.Line1) : -1;
+		double A2 = (RetList[1] && RetList[0]) ? AngleLineLine(Line, Pair.Line2) : -1;
+		*(Result + 1) = (RetList[1] && RetList[0]) ? (D1 < D2 ? A1 : A2) : -1;
+
+		//缝隙宽度
+		*(Result + 2) = RetList[1] ? DistanceLineLine(Pair.Line1, Pair.Line2) : -1;
+
+		//缝隙夹角
+		*(Result + 3) = RetList[1] ? AngleLineLine(Pair.Line1, Pair.Line2) : -1;
+
+		Num = 4;
 		bool Ret = true;
 		for (int i = 0;i < 2;i++)
 			Ret &= RetList[i];
 		return Ret ? SUCCESS : FAILED;
 	}
 	break;
-
-	default:
-		break;
 	}
-	return FAILED;
 }
+int CHalconFuncSet::ProcessImage3(EnumPicType ImageType, CLineModel& LineSide, CLineModel& LineUp, CLineModel& LineDown, CCircleModel& CircleLeft, CCircleModel& CircleRight,
+	CPairModel& PairSide, CPairModel& PairUp, CPairModel& PairDown,  double* Result, int& Num, bool draw_image)
+{
+	HTuple Hom2D;
+	bool RetList[] = { false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false };
+	switch (ImageType)
+	{
+	case CHalconFuncSet::RP_POSE03:
+	case CHalconFuncSet::RP_POSE08:
+	{
+		string ParaPath = "";
+		if (ImageType == CHalconFuncSet::RP_POSE03)
+			ParaPath = "Pose3";
+		else
+			ParaPath = "Pose8";
+
+		string ParaLineSide = "./Para/" + ParaPath + "/L1/";
+		string ParaLineUp = "./Para/" + ParaPath + "/L2/";
+		string ParaLineDown = "./Para/" + ParaPath + "/L3/";
+		string ParaPirSide = "./Para/" + ParaPath + "/P1/";
+		string ParaPairUp = "./Para/" + ParaPath + "/P2/";
+		string ParaPairDown = "./Para/" + ParaPath + "/P3/";
+		string ParaCircleLeft = "./Para/" + ParaPath + "/C1/";
+		string ParaCircleRight = "./Para/" + ParaPath + "/C2/";
+
+
+
+
+		if (AdjustImage(m_ImageGen, &m_ImageGen, "./Para/" + ParaPath + "/", Hom2D) != SUCCESS)
+			return FAILED;
+		this->m_ImageOutFore = m_ImageGen;
+		this->m_ImageOutBk = m_ImageGen;
+	
+		//方通侧边线
+		if ((RetList[0] = (FindLine(m_ImageGen, ParaLineSide, &LineSide) == SUCCESS)) && draw_image)
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, LineSide);
+		//上边线
+		if ((RetList[1] = (FindLine(m_ImageGen, ParaLineUp, &LineUp) == SUCCESS)) && draw_image)
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, LineUp);
+
+		//下边线
+		if ((RetList[2] = (FindLine(m_ImageGen, ParaLineDown, &LineDown) == SUCCESS)) && draw_image)
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, LineDown);
+
+		//侧面缝隙
+		if ((RetList[3] = (FindPair(m_ImageGen, ParaPirSide, &PairSide) == SUCCESS)) && draw_image)
+		{
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, PairSide.Line1);
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, PairSide.Line2);
+		}
+
+		//左边圆
+		if ((RetList[4] = (FindCircle(m_ImageGen, ParaCircleLeft, &CircleLeft) == SUCCESS)) && draw_image)
+			PaintCircle(this->m_ImageOutFore, this->m_ImageOutBk, CircleLeft);
+
+		//右边圆
+		if ((RetList[5] = (FindCircle(m_ImageGen, ParaCircleRight, &CircleRight) == SUCCESS)) && draw_image)
+			PaintCircle(this->m_ImageOutFore, this->m_ImageOutBk, CircleRight);
+
+		//上面缝隙
+		if ((RetList[6] = (FindPair(m_ImageGen, ParaPairUp, &PairUp) == SUCCESS)) && draw_image)
+		{
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, PairUp.Line1);
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, PairUp.Line2);
+			PaintLine(this->m_ImageOutFore, PairUp.Line2, 0);
+			PaintLine(this->m_ImageOutFore, PairUp.Line1, 0);
+			PaintLine(this->m_ImageOutBk, PairUp.Line2, 255);
+			PaintLine(this->m_ImageOutBk, PairUp.Line1, 255);
+		}
+
+		//下面缝隙
+		if ((RetList[7] = (FindPair(m_ImageGen, ParaPairDown, &PairDown) == SUCCESS)) && draw_image)
+		{
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, PairDown.Line1);
+			PaintLine(this->m_ImageOutFore, this->m_ImageOutBk, PairDown.Line2);
+			PaintLine(this->m_ImageOutFore, PairDown.Line1, 0);
+			PaintLine(this->m_ImageOutFore, PairDown.Line2, 0);
+			PaintLine(this->m_ImageOutBk, PairDown.Line1, 255);
+			PaintLine(this->m_ImageOutBk, PairDown.Line2, 255);
+		}
+
+
+		//方通宽度
+		double D1 = DistanceLineLine(LineSide, PairSide.Line1);
+		double D2 = DistanceLineLine(LineSide, PairSide.Line2);
+		*(Result) = (RetList[3] && RetList[0]) ? min(D1, D2) : -1;
+
+		//方通夹角
+		double A1 = (RetList[3] && RetList[0]) ? AngleLineLine(LineSide, PairSide.Line1) : -1;
+		double A2= (RetList[3] && RetList[0]) ? AngleLineLine(LineSide, PairSide.Line2) : -1;
+		*(Result+1) = (RetList[3] && RetList[0]) ? (D1 < D2 ? A1 : A2) : -1;
+
+		//侧面缝隙宽度
+		*(Result + 2) = RetList[3] ? DistanceLineLine(PairSide.Line1, PairSide.Line2) : -1;
+
+		//侧面缝隙夹角
+		*(Result + 3) = RetList[3] ? AngleLineLine(PairSide.Line1, PairSide.Line2) : -1;
+
+		//左圆到侧面距离
+		*(Result + 4) = (RetList[0] && RetList[4]) ? DistanceCircleLine(CircleLeft, LineSide) : -1;
+
+		//左圆到上面距离
+		*(Result + 5) = (RetList[1] && RetList[4]) ? DistanceCircleLine(CircleLeft, LineUp) : -1;
+
+		//左圆到下面距离
+		*(Result + 6) = (RetList[2] && RetList[4]) ? DistanceCircleLine(CircleLeft, LineDown) : -1;
+
+		//右圆到侧面距离
+		*(Result + 7) = (RetList[0] && RetList[5]) ? DistanceCircleLine(CircleRight, LineSide) : -1;
+		//右圆到上面距离
+		*(Result + 8) = (RetList[1] && RetList[5]) ? DistanceCircleLine(CircleRight, LineUp) : -1;
+		//右圆到下面距离
+		*(Result + 9) = (RetList[2] && RetList[5]) ? DistanceCircleLine(CircleRight, LineDown) : -1;
+
+
+		//上缝隙宽度
+		*(Result + 10) = RetList[6] ? DistanceLineLine(PairUp.Line1, PairUp.Line2) : -1;
+		//上缝隙角度
+		*(Result + 11) = RetList[6] ? AngleLineLine(PairUp.Line1, PairUp.Line2) : -1;
+		//下缝隙宽度
+		*(Result + 12) = RetList[7] ? DistanceLineLine(PairDown.Line1, PairDown.Line2) : -1;
+		//下缝隙角度
+		*(Result + 13) = RetList[7] ? AngleLineLine(PairDown.Line1, PairDown.Line2) : -1;
+		Num = 14;
+		bool Ret = true;
+		for (int i = 0;i < 8;i++)
+			Ret &= RetList[i];
+		return Ret ? SUCCESS : FAILED;
+	}
+	break;
+	}
+}
+
+
+
+
+
 
 void CHalconFuncSet::PaintLine(HObject& ImageFore, HObject& ImageBk, CLineModel Line)
 {
@@ -1016,7 +1256,7 @@ void CHalconFuncSet::PaintLine(HObject& ImageFore, HObject& ImageBk, CLineModel 
 
 void CHalconFuncSet::PaintCircle(HObject& ImageFore, HObject& ImageBk, CCircleModel Circle)
 {
-	HObject RegionCircle,RegionPoint, RegionCircleErosion;
+	HObject RegionCircle, RegionPoint, RegionCircleErosion;
 	GenRegionPoints(&RegionPoint, Circle.CenterPoint.Y, Circle.CenterPoint.X);
 	GenCircle(&RegionCircle, Circle.CenterPoint.Y, Circle.CenterPoint.X, Circle.Radius);
 	GenCircle(&RegionCircleErosion, Circle.CenterPoint.Y, Circle.CenterPoint.X, Circle.Radius - 2);
@@ -1034,7 +1274,7 @@ void CHalconFuncSet::PaintLine(HObject& Image, CLineModel Line, int GrayValue)
 {
 	HObject RegionLine1;
 	GenRegionLine(&RegionLine1, Line.StartPoint.Y, Line.StartPoint.X, Line.EndPoint.Y, Line.EndPoint.X);
-	PaintRegion(RegionLine1, Image, &Image, GrayValue%256, "fill");
+	PaintRegion(RegionLine1, Image, &Image, GrayValue % 256, "fill");
 }
 void CHalconFuncSet::PaintCircle(HObject& Image, CCircleModel Circle, int GrayValue)
 {
@@ -1045,8 +1285,8 @@ void CHalconFuncSet::PaintCircle(HObject& Image, CCircleModel Circle, int GrayVa
 	//ErosionCircle(RegionCircle, &RegionCircleErosion, 4);
 	Difference(RegionCircle, RegionCircleErosion, &RegionCircle);
 
-	PaintRegion(RegionPoint, Image, &Image, GrayValue%256, "fill");
-	PaintRegion(RegionCircle, Image, &Image, GrayValue%256, "fill");
+	PaintRegion(RegionPoint, Image, &Image, GrayValue % 256, "fill");
+	PaintRegion(RegionCircle, Image, &Image, GrayValue % 256, "fill");
 }
 
 double CHalconFuncSet::DistanceLineLine(CLineModel& Line1, CLineModel& Line2)
@@ -1061,4 +1301,15 @@ double CHalconFuncSet::DistanceCircleLine(CCircleModel& Circle, CLineModel& Line
 	HTuple D;
 	DistancePl(Circle.CenterPoint.Y, Circle.CenterPoint.X, Line.StartPoint.Y, Line.StartPoint.X, Line.EndPoint.Y, Line.EndPoint.X, &D);
 	return D.D();
+}
+double CHalconFuncSet::AngleLineLine(CLineModel& Line1, CLineModel& Line2)
+{
+	HTuple Angle;
+	AngleLl(Line1.StartPoint.Y, Line1.StartPoint.X, Line1.EndPoint.Y, Line1.EndPoint.X, Line2.StartPoint.Y, Line2.StartPoint.X, Line2.EndPoint.Y, Line2.EndPoint.X, &Angle);
+	double A = RadToDeg(Angle);
+	if (abs(A) > 90)
+		A = abs(A) - 90;
+	else
+		A = abs(A);
+	return A;
 }

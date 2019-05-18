@@ -21,6 +21,9 @@
     <ClInclude Include="CVisionMetric2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Hua.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

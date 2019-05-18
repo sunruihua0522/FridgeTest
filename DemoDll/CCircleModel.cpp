@@ -10,4 +10,5 @@ CCircleModel::CCircleModel(CPointModel& CenterPt,double Radius)
 
 CCircleModel::~CCircleModel()
 {
+
 }

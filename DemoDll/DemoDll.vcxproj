@@ -127,13 +127,16 @@
     <ClInclude Include="CCircleModel.h" />
     <ClInclude Include="CHalconFuncSet.h" />
     <ClInclude Include="CLineModel.h" />
+    <ClInclude Include="CPairModel.h" />
     <ClInclude Include="CPointModel.h" />
     <ClInclude Include="CVisionMetric2D.h" />
+    <ClInclude Include="Hua.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CCircleModel.cpp" />
     <ClCompile Include="CHalconFuncSet.cpp" />
     <ClCompile Include="CLineModel.cpp" />
+    <ClCompile Include="CPairModel.cpp" />
     <ClCompile Include="CPointModel.cpp" />
     <ClCompile Include="CVisionMetric2D.cpp" />
   </ItemGroup>
